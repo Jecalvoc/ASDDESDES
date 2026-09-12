@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNA FUERZA MÁS PODEROSA — Edición Latinoamericana</title>
+<style>
+  :root { --bg:#12100e; --panel:#1d1a17; --panel2:#262220; --red:#c1272d; --gold:#d9a441; --text:#e8e0d4; --dim:#9a8f80; --green:#4f7942; --blue:#4a6785; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:Georgia,'Times New Roman',serif; line-height:1.5; padding:16px; }
+  h1,h2,h3 { font-family:'Arial Black',Arial,sans-serif; letter-spacing:1px; }
+  header { text-align:center; border-bottom:3px solid var(--red); padding-bottom:12px; margin-bottom:16px; }
+  header h1 { color:var(--red); font-size:1.9em; text-transform:uppercase; }
+  header .subtitle { color:var(--gold); font-style:italic; font-size:1.05em; }
+  .layout { display:grid; grid-template-columns:260px 1fr 300px; gap:14px; }
+  @media (max-width:980px){ .layout{grid-template-columns:1fr;} }
+  .panel { background:var(--panel); border:1px solid #3a342e; border-radius:6px; padding:12px; }
+  .panel h2 { font-size:0.95em; color:var(--gold); text-transform:uppercase; border-bottom:1px solid #3a342e; padding-bottom:6px; margin-bottom:10px; }
+  .meter { margin-bottom:12px; }
+  .meter label { font-size:0.85em; display:flex; justify-content:space-between; margin-bottom:3px; }
+  .bar { height:14px; background:#000; border-radius:3px; overflow:hidden; border:1px solid #444; }
+  .bar > div { height:100%; transition:width 0.4s; }
+  .bar-consc > div { background:linear-gradient(90deg,#7a1f23,var(--red)); }
+  .bar-solid > div { background:linear-gradient(90deg,#a8842f,var(--gold)); }
+  .bar-state > div { background:linear-gradient(90deg,#33475c,var(--blue)); }
+  .bar-mom > div { background:linear-gradient(90deg,#35502e,var(--green)); }
+  .bar-regime > div { background:linear-gradient(90deg,#3a1f4a,#8a3b6e); }
+  .districts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  @media (max-width:600px){ .districts{grid-template-columns:repeat(2,1fr);} }
+  .district { background:var(--panel2); border:1px solid #3a342e; border-radius:5px; padding:8px; cursor:pointer; transition:transform 0.1s,border-color 0.2s; position:relative; }
+  .district:hover { transform:translateY(-2px); }
+  .district.selected { border-color:var(--gold); box-shadow:0 0 8px rgba(217,164,65,0.4); }
+  .district.hostile { opacity:0.75; cursor:not-allowed; }
+  .district .dname { font-weight:bold; font-size:0.84em; }
+  .district .dtype { font-size:0.68em; color:var(--dim); text-transform:uppercase; }
+  .mini-bar { height:7px; background:#000; border-radius:2px; margin-top:4px; overflow:hidden; }
+  .mini-bar > div { height:100%; }
+  .mini-org > div { background:var(--gold); }
+  .district .mlabel { font-size:0.63em; color:var(--dim); margin-top:3px; display:flex; justify-content:space-between; }
+  .district .dleader { font-size:0.63em; color:var(--green); margin-top:3px; }
+  .flag { position:absolute; top:6px; right:8px; font-size:0.9em; }
+  .action-btn { display:block; width:100%; text-align:left; background:var(--panel2); color:var(--text); border:1px solid #3a342e; border-radius:4px; padding:8px 10px; margin-bottom:6px; cursor:pointer; font-family:inherit; font-size:0.83em; transition:background 0.15s; }
+  .action-btn:hover:not(:disabled) { background:#332d28; border-color:var(--gold); }
+  .action-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .action-btn .cost { color:var(--gold); float:right; font-size:0.9em; }
+  .action-btn .adesc { display:block; font-size:0.85em; color:var(--dim); margin-top:2px; }
+  #end-turn { background:var(--red); color:#fff; border:none; font-family:'Arial Black',Arial,sans-serif; text-align:center; margin-top:8px; text-transform:uppercase; letter-spacing:1px; }
+  #end-turn:hover:not(:disabled) { background:#e0343b; }
+  #cuadros { max-height:260px; overflow-y:auto; font-size:0.8em; }
+  .cuadro-sub { color:var(--gold); font-size:0.85em; margin:9px 0 4px; text-transform:uppercase; letter-spacing:0.5px; }
+  .cuadro-empty { color:var(--dim); font-style:italic; padding:2px 0; }
+  .leader-card { background:var(--panel2); border:1px solid #3a342e; border-radius:4px; padding:6px 8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .leader-card.candidate { border-color:var(--gold); }
+  .leader-card.deployed { border-color:var(--green); }
+  .leader-card.preso { border-color:var(--blue); opacity:0.9; }
+  .leader-card.cooptado { border-color:#8a3b6e; opacity:0.85; }
+  .leader-card .lmain { flex:1; min-width:0; }
+  .leader-card .lname { font-size:0.9em; }
+  .leader-card .ldesc { font-size:0.78em; color:var(--dim); }
+  .lskill { color:var(--gold); font-size:0.85em; }
+  .mini-btn { background:var(--red); color:#fff; border:none; border-radius:3px; padding:4px 9px; font-size:0.78em; cursor:pointer; white-space:nowrap; font-family:inherit; }
+  .mini-btn:hover { background:#e0343b; }
+  #regimen-last { font-size:0.75em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:6px; color:var(--dim); }
+  #regimen-last b { color:var(--text); }
+  #regimen-last .min { color:#b08cc8; }
+  #log { height:190px; overflow-y:auto; font-size:0.78em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:8px; }
+  #log p { margin-bottom:6px; border-bottom:1px dotted #2a2622; padding-bottom:4px; }
+  .log-event { color:var(--gold); }
+  .log-state { color:#7da3c8; }
+  .log-good { color:#8fbc7f; }
+  .log-bad { color:#d97b7f; }
+  .log-quote { color:#c8a860; font-style:italic; }
+  .memoria { font-size:0.78em; }
+  .mem-item { border-bottom:1px dotted #2a2622; padding:6px 0; color:var(--dim); }
+  .mem-item b { color:var(--text); }
+  .mem-item:last-child { border-bottom:none; }
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal { background:var(--panel); border:2px solid var(--red); border-radius:8px; max-width:720px; max-height:85vh; overflow-y:auto; padding:28px; }
+  .modal h2 { color:var(--red); margin-bottom:12px; text-transform:uppercase; }
+  .modal h3 { color:var(--gold); margin:14px 0 6px; font-size:1em; }
+  .modal p { margin-bottom:10px; font-size:0.95em; }
+  .modal blockquote { border-left:3px solid var(--red); padding-left:12px; color:var(--dim); font-style:italic; margin:12px 0; font-size:0.9em; }
+  .modal button { background:var(--red); color:#fff; border:none; padding:12px 28px; font-family:'Arial Black',Arial,sans-serif; cursor:pointer; border-radius:4px; text-transform:uppercase; letter-spacing:1px; margin-top:12px; margin-right:8px; }
+  .modal button:hover { background:#e0343b; }
+  .hidden { display:none !important; }
+  .status-row { display:flex; justify-content:space-between; font-size:0.85em; margin-bottom:6px; }
+  .status-row span:last-child { color:var(--gold); font-weight:bold; }
+  footer { text-align:center; margin-top:18px; color:var(--dim); font-size:0.8em; font-style:italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✊ Una Fuerza Más Poderosa</h1>
+  <div class="subtitle">Edición Latinoamericana — Organizar a quienes producen, retirar el consentimiento, construir poder popular</div>
+</header>
+
+<div class="layout">
+  <!-- IZQUIERDA -->
+  <div>
+    <div class="panel" style="margin-bottom:14px;">
+      <h2>Estado del Movimiento</h2>
+      <div class="status-row"><span>Jornada</span><span id="turn">1</span></div>
+      <div class="status-row"><span>Puntos de Solidaridad</span><span id="sp">5</span></div>
+      <div class="meter"><label>Conciencia de Clase <span id="consc-val">15</span></label><div class="bar bar-consc"><div id="consc-bar" style="width:15%"></div></div></div>
+      <div class="meter"><label>Impulso <span id="mom-val">10</span></label><div class="bar bar-mom"><div id="mom-bar" style="width:10%"></div></div></div>
+      <div class="meter"><label>Alerta Represiva <span id="state-val">20</span></label><div class="bar bar-state"><div id="state-bar" style="width:20%"></div></div></div>
+      <div class="meter"><label>Preparación para el Paro General <span id="strike-val">0%</span></label><div class="bar bar-solid"><div id="strike-bar" style="width:0%"></div></div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:14px;">
+      <h2>🏛️ El Régimen</h2>
+      <div class="status-row"><span>Fase</span><span id="regimen-fase" style="color:var(--red)"></span></div>
+      <div class="meter"><label>Capital político <span id="regimen-capital-val">80</span></label><div class="bar bar-regime"><div id="regimen-capital-bar" style="width:80%"></div></div></div>
+      <div style="font-size:0.72em;color:var(--dim);margin-bottom:6px;">Medidas de excepción: <span id="regimen-measures"></span></div>
+      <div id="regimen-last"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Acciones</h2>
+      <div id="actions"></div>
+      <button class="action-btn" id="end-turn" onclick="endTurn()">Cerrar jornada — el régimen responde</button>
+    </div>
+  </div>
+
+  <!-- CENTRO -->
+  <div>
+    <div class="panel">
+      <h2>La Ciudad y el Territorio — Terreno de la Lucha de Clases</h2>
+      <div class="districts" id="districts"></div>
+      <p style="font-size:0.75em;color:var(--dim);margin-top:10px;">💡 Selecciona un distrito para dirigir acciones o enviar un cuadro. La organización se desgasta si no se mantiene: la lucha es larga.</p>
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <h2>📜 Memoria de las Luchas</h2>
+      <div class="memoria">
+        <div class="mem-item"><b>🌽 La Minga Indígena</b> — Trabajo colectivo ancestral que se vuelve movilización.</div>
+        <div class="mem-item"><b>🇨🇴 21N — Paro Nacional Colombiano (2019)</b> — Cacerolazos, cultura y primera línea.</div>
+        <div class="mem-item"><b>🇨🇱 El Estallido de Chile (2019)</b> — "No son 30 pesos, son 30 años". Toque de queda, estado de excepción, cabildos.</div>
+        <div class="mem-item"><b>🇧🇴 El Paro en Bolivia</b> — Bloqueos de caminos y paros nacionales.</div>
+        <div class="mem-item"><b>🏘️ Las Comunas y el Poder Comunal</b> — Autoorganización territorial del pueblo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DERECHA -->
+  <div>
+    <div class="panel" style="margin-bottom:14px;">
+      <h2>👥 Cuadros y Liderazgo</h2>
+      <div id="cuadros"></div>
+    </div>
+    <div class="panel">
+      <h2>Registro de la Lucha</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<footer>"Los filósofos no han hecho más que interpretar el mundo de diversos modos; de lo que se trata es de transformarlo." — Karl Marx</footer>
+
+<!-- INTRO -->
+<div class="modal-bg" id="intro">
+  <div class="modal">
+    <h2>Una Fuerza Más Poderosa — Edición Latinoamericana</h2>
+    <p>Inspirado en <em>A Force More Powerful</em>. Esta edición pregunta: <strong>¿de dónde viene el poder y quién tiene las palancas?</strong></p>
+    <h3>Nuestra América</h3>
+    <p>América Latina es la región más desigual del planeta. Pero hay otra historia: la Guerra del Agua, el diciembre argentino de 2001, la Minga, el 21N colombiano, el estallido de Chile, los paros de Bolivia y Perú, las comunas, la marea feminista.</p>
+    <h3>La premisa materialista</h3>
+    <p>Toda clase dominante depende del <em>trabajo y la obediencia</em> de quienes explota. Cuando quienes producen retiran su consentimiento, la máquina se detiene.</p>
+    <h3>El régimen</h3>
+    <p>Enfrentas a un gobierno neoliberal con un <strong>gabinete que reacciona cada jornada</strong>: el Vocero te niega y lanza granjas de bots, el Ministro de Economía compra la calma con bonos, el Ministro del Interior despliega el ESMAD y judicializa, y el Jefe de Inteligencia infiltra y corta el internet. Cada medida que rebota les cuesta <strong>capital político</strong>. Las voces de Mariátegui, Freire, Marx, Angela Davis, Dussel, Galeano, Martí, el Che, Fanon, Romero y muchos más acompañan la lucha.</p>
+    <h3>La lucha es larga</h3>
+    <p>La organización <strong>se desgasta si no se mantiene</strong>: cada jornada los distritos pueden perder terreno. El Paro General requiere <strong>Preparación ≥ 85%</strong> — construirlo toma muchas jornadas. No te apresures: consolida, federar comunas, gana conciencia, desgasta al régimen.</p>
+    <h3>Tu tarea</h3>
+    <p>🔨 Organizar. 📖 Elevar la conciencia. 🤝 Construir unidad. 🌽 Convocar la minga y federar comunas. 👥 Enviar cuadros (pueden ser arrestados, eliminados, cooptados o convertidos en mártires). 🛡️ Desgastar el capital político del régimen. ⚑ Convocar al <strong>Paro General</strong>.</p>
+    <blockquote>"Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui</blockquote>
+    <button onclick="startGame()">Comenzar a organizar</button>
+  </div>
+</div>
+
+<!-- FIN -->
+<div class="modal-bg hidden" id="endscreen">
+  <div class="modal"><h2 id="end-title"></h2><div id="end-text"></div><button onclick="location.reload()">Comenzar una nueva lucha</button></div>
+</div>
+
+<!-- DECISIÓN -->
+<div class="modal-bg hidden" id="choice-modal-bg">
+  <div class="modal"><h2 id="choice-title"></h2><div id="choice-text"></div>
+    <button id="choice-yes"></button><button id="choice-no" style="background:#444;"></button>
+  </div>
+</div>
+
+<script>
+const DISTRICT_DEFS = [
+  { id:'mina', name:'Proyecto Mega-minero (Litio)', type:'producción', pop:'2.000 trabajadores + territorio', base:20 },
+  { id:'maquila', name:'Maquila / Parque Industrial', type:'producción', pop:'5.000 obreros y obreras', base:15 },
+  { id:'puerto', name:'Puerto y Terminal Logística', type:'producción', pop:'1.800 estibadores y camioneros', base:25 },
+  { id:'barrio', name:'Barrio Popular', type:'comunidad', pop:'60.000 vecinos y vecinas', base:10 },
+  { id:'mercado', name:'Mercado y Trabajo Informal', type:'comunidad', pop:'Recicladores, ambulantes, repartidores', base:5 },
+  { id:'resguardo', name:'Resguardo Indígena', type:'territorio', pop:'Autoridades ancestrales y comunidad', base:30 },
+  { id:'comuna', name:'Comuna / Poder Comunal', type:'comunidad', pop:'Consejos comunales organizados', base:15 },
+  { id:'univ', name:'Universidad Pública', type:'intelectual', pop:'30.000 estudiantes', base:10 },
+  { id:'finanzas', name:'Grupos Económicos', type:'capital', pop:'Los bancos y el poder económico', base:0, hostile:true },
+  { id:'medios', name:'Grupo Mediático', type:'ideología', pop:'El monopolio de la palabra', base:0, hostile:true },
+  { id:'gobierno', name:'Casa de Gobierno', type:'estado', pop:'El aparato del Estado', base:0, hostile:true },
+];
+
+const MINISTERS = {
+  interior:   { icon:'🪖', title:'Ministro del Interior', motto:'"Orden y mano dura"' },
+  vocero:     { icon:'🎙️', title:'Vocero del Régimen', motto:'"Aquí no está pasando nada"' },
+  economia:   { icon:'💼', title:'Ministro de Economía', motto:'"No hay alternativa al ajuste"' },
+  inteligencia:{ icon:'🕵️', title:'Jefe de Inteligencia', motto:'"Los estamos observando"' },
+};
+
+// ===== VOCES DE LA LUCHA =====
+const QUOTE_POOLS = {
+  represion: [
+    {q:'La libertad es una lucha constante.', a:'Angela Davis'},
+    {q:'Podrán cortar todas las flores, pero no detendrán la primavera.', a:'Pablo Neruda'},
+    {q:'El que se cansa, pierde.', a:'Consigna de las calles'},
+    {q:'Cada generación debe, desde una relativa oscuridad, descubrir su misión, cumplirla o traicionarla.', a:'Frantz Fanon'},
+    {q:'Volveré y seré millones.', a:'Túpac Katari'},
+  ],
+  unidad: [
+    {q:'Nadie libera a nadie, nadie se libera solo, las personas se liberan en comunión.', a:'Paulo Freire'},
+    {q:'Si tocan a uno, nos tocan a todos.', a:'Consigna popular'},
+    {q:'¡El pueblo unido jamás será vencido!', a:'Consigna popular'},
+    {q:'Patria es humanidad.', a:'José Martí'},
+    {q:'Nuestra unión es la que nos falta para completar nuestra regeneración.', a:'Simón Bolívar'},
+  ],
+  crisis: [
+    {q:'El capital nace chorreando sangre y lodo por todos los poros.', a:'Karl Marx, El Capital'},
+    {q:'Las crisis de arriba son las oportunidades de abajo.', a:'Consigna'},
+    {q:'La historia es nuestra y la hacen los pueblos.', a:'Salvador Allende'},
+  ],
+  conciencia: [
+    {q:'De lo que se trata es de transformar el mundo.', a:'Karl Marx'},
+    {q:'La educación no cambia el mundo; cambia a las personas que van a cambiar el mundo.', a:'Paulo Freire'},
+    {q:'El punto de partida de la liberación es el grito del excluido.', a:'Enrique Dussel'},
+    {q:'Un pueblo ignorante es instrumento ciego de su propia destrucción.', a:'Simón Bolívar'},
+    {q:'Ser culto es el único modo de ser libre.', a:'José Martí'},
+  ],
+  martir: [
+    {q:'No han matado a uno: han sembrado mil.', a:'Consigna popular'},
+    {q:'Podrán cortar todas las flores, pero no detendrán la primavera.', a:'Pablo Neruda'},
+    {q:'Volveré y seré millones.', a:'Túpac Katari'},
+    {q:'Si me matan, resucitaré en el pueblo.', a:'Óscar Romero'},
+  ],
+  medios: [
+    {q:'Los medios no reflejan la realidad: la fabrican al servicio de quien manda.', a:'Michael Parenti'},
+    {q:'La verdad no se impone: se abre camino.', a:'Consigna'},
+    {q:'El que nada debe, nada teme.', a:'Consigna'},
+  ],
+  victoria: [
+    {q:'La historia es nuestra y la hacen los pueblos.', a:'Salvador Allende'},
+    {q:'¡El pueblo unido jamás será vencido!', a:'Consigna popular'},
+    {q:'Mucha gente pequeña, en lugares pequeños, haciendo cosas pequeñas, puede cambiar el mundo.', a:'Eduardo Galeano'},
+  ],
+  derrota: [
+    {q:'Podrán cortar todas las flores, pero no detendrán la primavera.', a:'Pablo Neruda'},
+    {q:'La utopía está en el horizonte. Camino dos pasos, ella se aleja dos pasos. ¿Para qué sirve? Para eso: sirve para caminar.', a:'Eduardo Galeano'},
+    {q:'Estudiar la derrota, volver a empezar.', a:'Consigna'},
+  ],
+  cultura: [
+    {q:'Todo cambia.', a:'Mercedes Sosa'},
+    {q:'Gracias a la vida que me ha dado tanto.', a:'Violeta Parra'},
+    {q:'El arte es la mentira que nos permite ver la verdad.', a:'Pablo Picasso (atribuida)'},
+  ],
+  territorio: [
+    {q:'El agua no se vende, el agua se defiende.', a:'Consigna'},
+    {q:'El territorio no se vende: se ama y se defiende.', a:'Consigna'},
+    {q:'¡Despierten, humanidad! No hay tiempo.', a:'Berta Cáceres'},
+  ],
+  feminismo: [
+    {q:'Si nosotras paramos, el mundo se detiene.', a:'Consigna feminista'},
+    {q:'Ni una menos.', a:'Consigna'},
+    {q:'Lo personal es político.', a:'Consigna feminista'},
+    {q:'La libertad es una lucha constante.', a:'Angela Davis'},
+  ],
+  internacionalismo: [
+    {q:'Hasta la victoria siempre.', a:'Ernesto Che Guevara'},
+    {q:'Sean capaces siempre de sentir, en lo más hondo, cualquier injusticia cometida contra cualquiera, en cualquier parte del mundo.', a:'Ernesto Che Guevara'},
+    {q:'La patria es América Latina.', a:'Consigna'},
+    {q:'Debemos atrevernos a inventar el futuro.', a:'Thomas Sankara'},
+  ],
+  escandalo: [
+    {q:'La verdad sale a la luz.', a:'Consigna'},
+    {q:'El que nada debe, nada teme.', a:'Consigna'},
+    {q:'La impunidad es el precio que el pueblo paga por la corrupción.', a:'Consigna'},
+  ],
+  fe: [
+    {q:'La fe sin obras está muerta.', a:'Epístola de Santiago'},
+    {q:'Si me matan, resucitaré en el pueblo.', a:'Óscar Romero'},
+    {q:'La revolución es la realización del amor al prójimo.', a:'Camilo Torres Restrepo'},
+  ],
+};
+function emitQuote(context, chance){
+  const pool = QUOTE_POOLS[context];
+  if(!pool || !pool.length) return;
+  if(chance !== undefined && Math.random() > chance) return;
+  const pick = pool[Math.floor(Math.random()*pool.length)];
+  log(`📖 "${pick.q}" — ${pick.a}`, 'quote');
+}
+
+const LEADER_TYPES = {
+  popular:   { label:'Líder popular', icon:'✊', desc:'Surgido de las masas del barrio.', riskMod:1.0, cost:3 },
+  sindical:  { label:'Dirigente sindical', icon:'🔧', desc:'Forjado en la fábrica y el gremio.', riskMod:1.0, cost:4 },
+  periodista:{ label:'Periodista crítico', icon:'📝', desc:'Rompe el cerco mediático. Muy expuesto.', riskMod:1.2, cost:4 },
+  veterano:  { label:'Veterano disidente', icon:'🛡️', desc:'Conoce el aparato armado. Protege y baja la alerta.', riskMod:0.55, cost:5 },
+  social:    { label:'Líder social', icon:'🌱', desc:'Defensor de la vida y el territorio.', riskMod:1.1, cost:3 },
+  ancestral: { label:'Autoridad ancestral', icon:'🌽', desc:'Guía de la minga y el territorio.', riskMod:0.9, cost:4 },
+  estudiante:{ label:'Dirigente estudiantil', icon:'🎓', desc:'Juventud que despierta.', riskMod:1.05, cost:2 },
+};
+
+const FIRST = ['María','José','Ana','Carlos','Rosa','Luis','Carmen','Jorge','Lucía','Andrés','Valentina','Diego','Sofía','Miguel','Camila','Pedro','Fernanda','Raúl','Elena','Tomás','Alicia','Iván','Paula','Ernesto','Dolores','Santiago','Julia','Hernán','Beatriz','Ramiro','Yolanda','Fabián','Marisol','Gustavo','Ángela','Wilson','Luz','Jhon','Nubia','Emiro'];
+const LAST = ['García','Rodríguez','Martínez','López','González','Hernández','Sánchez','Ramírez','Torres','Gómez','Díaz','Cruz','Reyes','Morales','Ortiz','Gutiérrez','Mendoza','Rojas','Quintero','Restrepo','Cárdenas','Vargas','Herrera','Castro','Suárez','Peña','Cortes','Salazar','Ibarra','Molina','Velasco','Osorio','Zapata','Giraldo','Munevar','Cubillos','Pardo','Cendales','Bernal','Rueda'];
+
+const FASE_NAMES = {1:'Negación y descrédito', 2:'Guerra de la información', 3:'Concesiones y cooptación', 4:'Represión selectiva', 5:'Estado de excepción'};
+function getFase(){ const s=G.state; if(s<30)return 1; if(s<50)return 2; if(s<65)return 3; if(s<80)return 4; return 5; }
+
+const ACTIONS = [
+  { id:'organize', name:'Organizar la base', cost:2, desc:'Militantes puerta a puerta, asamblea vecinal. +8 Organización.',
+    apply: d => { if (d.hostile) return 'No se organizan los bastiones del enemigo.'; d.org = Math.min(100, d.org + 8); log(`Los militantes se insertan en <b>${d.name}</b>.`, 'good'); bumpState(3); } },
+  { id:'education', name:'Círculo de formación política', cost:2, desc:'+6 Organización, +4 Conciencia en toda la ciudad.',
+    apply: d => { if (d.hostile) return 'Las instituciones dominantes educan para la obediencia.'; d.org = Math.min(100, d.org + 6); G.consc = Math.min(100, G.consc + 4); log(`Círculo de formación en <b>${d.name}</b>.`, 'good'); bumpState(2); emitQuote('conciencia', 0.6); } },
+  { id:'leaflet', name:'Volanteada', cost:1, desc:'+2 Conciencia en toda la ciudad.',
+    apply: d => { G.consc = Math.min(100, G.consc + 2); log('Los volantes circulan y el malestar se vuelve comprensión colectiva.', 'good'); emitQuote('conciencia', 0.3); } },
+  { id:'mutualaid', name:'Ollas comunes y red barrial', cost:3, desc:'+5 Organización, +3 Impulso.',
+    apply: d => { if (d.hostile) return 'La caridad desde arriba no organiza desde abajo.'; d.org = Math.min(100, d.org + 5); G.mom = Math.min(100, G.mom + 3); log(`Ollas comunes y fondo de arriendo en <b>${d.name}</b>.`, 'good'); emitQuote('fe', 0.3); } },
+  { id:'minga', name:'Convocar la Minga', cost:4, desc:'+6 Org a comunidades y territorios, +5 Conciencia, +4 Impulso.',
+    apply: d => { let n=0; DISTRICTS.forEach(x=>{ if(!x.hostile && (x.type==='comunidad'||x.type==='territorio'||x.type==='intelectual')){ x.org=Math.min(100,x.org+6); n++; } }); G.consc=Math.min(100,G.consc+5); G.mom=Math.min(100,G.mom+4); bumpState(5); log(`🌽 <b>Se convoca la Minga.</b> ${n} frentes se fortalecen.`, 'event'); emitQuote('unidad', 0.6); } },
+  { id:'strikew', name:'Cese de actividades', cost:4, desc:'Requiere Org ≥ 40. +8 Conciencia, +8 Impulso, dispara Alerta.',
+    apply: d => { if (d.hostile) return 'Ahí no mandan ustedes.'; if (d.org < 40) return `${d.name} necesita Organización ≥ 40.`; G.consc=Math.min(100,G.consc+8); G.mom=Math.min(100,G.mom+8); bumpState(10); log(`⚡ ¡Cese de actividades en <b>${d.name}</b>!`, 'event'); } },
+  { id:'unity', name:'Campaña de unidad', cost:3, desc:'+5 Organización en TODOS los distritos organizados.',
+    apply: d => { let n=0; DISTRICTS.forEach(x=>{ if(!x.hostile && x.org>5){ x.org=Math.min(100,x.org+5); n++; } }); log(`La unidad tiende puentes. ${n} distritos se fortalecen.`, 'good'); bumpState(4); emitQuote('unidad', 0.6); } },
+  { id:'comunal', name:'Articular la red comunal', cost:3, desc:'Requiere 2+ Asambleas Populares. +3 Org a cada una, +6 Impulso.',
+    apply: d => { const c=DISTRICTS.filter(x=>x.council); if(c.length<2) return 'Se necesitan al menos 2 Asambleas Populares.'; c.forEach(x=>x.org=Math.min(100,x.org+3)); G.mom=Math.min(100,G.mom+6); bumpState(5); log(`🔗 Las comunas se federan en una red de poder comunal.`, 'event'); } },
+  { id:'countermedia', name:'Contrainformación', cost:3, desc:'Requiere Conciencia ≥ 30. −8 Alerta, +4 Conciencia. Bloqueada si hay corte de internet.',
+    apply: d => { if(G.regime.internet>0) return 'El régimen cortó el internet: la contrainformación está bloqueada.'; if (G.consc < 30) return 'La conciencia debe llegar a 30 primero.'; G.state=Math.max(0,G.state-8); G.consc=Math.min(100,G.consc+4); log('Radios comunitarias y redes populares rompen el monopolio de la palabra.', 'good'); emitQuote('medios', 0.6); } },
+  { id:'council', name:'Formar Asamblea Popular', cost:5, desc:'Requiere Org ≥ 70. Semilla del poder popular. +10 Impulso.',
+    apply: d => { if (d.hostile) return 'Las asambleas nacen desde abajo.'; if (d.org < 70) return `${d.name} necesita Organización ≥ 70 (tiene ${Math.round(d.org)}).`; if (d.council) return 'Ya funciona una asamblea aquí.'; d.council = true; G.mom = Math.min(100, G.mom + 10); bumpState(8); log(`🚩 ASAMBLEA POPULAR en <b>${d.name}</b>.`, 'event'); } },
+  { id:'freepress', name:'Campaña por los presos políticos', cost:4, desc:'Requiere 1+ preso. Posibilidad de liberar a uno. +4 Conciencia.',
+    apply: d => { const presos=G.leaders.filter(L=>L.status==='preso'); if(presos.length===0) return 'No hay presos políticos por quienes exigir libertad.'; G.consc=Math.min(100,G.consc+4); bumpState(3); if(Math.random()<0.55){ const L=presos[Math.floor(Math.random()*presos.length)]; L.status='disponible'; log(`✊ <b>${L.name}</b> es liberado/a. "¡Preso político, el pueblo está contigo!"`, 'good'); } else { log('La campaña moviliza y visibiliza, pero el Estado aún no cede.', 'state'); } } },
+  { id:'genstrike', name:'⚑ CONVOCAR AL PARO GENERAL', cost:0, desc:'El acto decisivo. Requiere Preparación ≥ 85%.',
+    apply: d => { attemptGeneralStrike(); } },
+];
+
+let G, DISTRICTS, eliminationQueue = [];
+
+function initGame() {
+  G = { turn:1, sp:5, consc:15, mom:10, state:20, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[] };
+  G.regime = { capital:80, fase:1, bots:0, internet:0, militarizado:0, collapsed:false, lastMeasure:'Observa', lastDetail:'El régimen aún subestima al movimiento.', lastMinister:'🏛️ El Régimen' };
+  DISTRICTS = DISTRICT_DEFS.map(d => ({...d, org: d.hostile ? 100 : d.base, council:false }));
+  G.leaders.push(makeLeader('popular'));
+  G.leaders.push(makeLeader('sindical'));
+  log('Comienzas con dos cuadros. Envíalos a gestionar una región cuando lo decidas.', 'quote');
+  log('📖 "Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui', 'quote');
+  render();
+}
+function startGame(){ document.getElementById('intro').classList.add('hidden'); initGame(); }
+
+// ===== CUADROS =====
+function makeName(){ const f=FIRST[Math.floor(Math.random()*FIRST.length)]; const a=LAST[Math.floor(Math.random()*LAST.length)]; const b=LAST[Math.floor(Math.random()*LAST.length)]; return `${f} ${a} ${b}`; }
+function makeLeader(type){ return { id:G.nextId++, name:makeName(), type, skill:1+Math.floor(Math.random()*3), status:'disponible', district:null, riskMod:LEADER_TYPES[type].riskMod }; }
+function recruitCandidate(id){
+  const c = G.candidates.find(x=>x.id===id); if(!c) return;
+  const active = G.leaders.filter(L=>['disponible','desplegado'].includes(L.status)).length;
+  if(active >= 10){ log('La estructura de cuadros está al límite.', 'bad'); return; }
+  if(G.sp < c.cost){ log('No hay suficientes Puntos de Solidaridad.', 'bad'); return; }
+  G.sp -= c.cost; c.status='disponible'; G.leaders.push(c);
+  G.candidates = G.candidates.filter(x=>x.id!==id);
+  log(`🤝 Reclutado/a: <b>${c.name}</b> (${LEADER_TYPES[c.type].label}).`, 'good'); render();
+}
+function deployLeader(id){
+  const L = G.leaders.find(x=>x.id===id); if(!L || L.status!=='disponible') return;
+  const d = DISTRICTS.find(x=>x.id===G.selected);
+  if(!d){ log('Primero selecciona un distrito.', 'bad'); return; }
+  if(d.hostile){ log('No puedes enviar cuadros a los bastiones del enemigo.', 'bad'); return; }
+  if(G.leaders.some(l=>l.status==='desplegado' && l.district===d.id)){ log(`Ya hay un cuadro en ${d.name}.`, 'bad'); return; }
+  if(G.sp < 1){ log('Se necesita 1 PS para el despliegue.', 'bad'); return; }
+  G.sp -= 1; L.status='desplegado'; L.district=d.id;
+  log(`📍 <b>${L.name}</b> asume la gestión de <b>${d.name}</b>.`, 'good'); render();
+}
+function recallLeader(id){
+  const L = G.leaders.find(x=>x.id===id); if(!L || L.status!=='desplegado') return;
+  L.status='disponible'; L.district=null; log(`${L.name} se repliega a un lugar seguro.`, 'state'); render();
+}
+function maybeSpawnCandidate(){
+  if(G.candidates.length >= 3) return;
+  if(Math.random() < 0.32){
+    const types = Object.keys(LEADER_TYPES);
+    const type = types[Math.floor(Math.random()*types.length)];
+    const c = makeLeader(type); c.status='candidato'; c.cost=LEADER_TYPES[type].cost; c.expires=G.turn+3;
+    G.candidates.push(c);
+    log(`🔔 Ha surgido <b>${c.name}</b>, ${LEADER_TYPES[type].label.toLowerCase()}. ${LEADER_TYPES[type].desc} Recluta por ${c.cost} PS.`, 'event');
+  }
+}
+function expireCandidates(){
+  const before = G.candidates.length;
+  G.candidates = G.candidates.filter(c => c.expires > G.turn);
+  if(G.candidates.length < before) log('Algunas figuras en espera se alejaron o fueron silenciadas.', 'state');
+}
+function leaderRiskPhase(){
+  const elimBase = 0.01 + G.state * 0.0005;
+  const arrestBase = 0.04 + G.state * 0.001;
+  G.leaders.filter(L=>L.status==='desplegado').forEach(L=>{
+    const d = DISTRICTS.find(x=>x.id===L.district);
+    const rm = L.riskMod || 1;
+    const r = Math.random();
+    if(r < elimBase*rm){ L.status='eliminado'; L.district=null; eliminationQueue.push({L, where:d?d.name:'el territorio'}); }
+    else if(r < elimBase*rm + arrestBase*rm){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2);
+      log(`🚨 <b>${L.name}</b> fue arrestado/a en ${d.name}. Preso/a político/a.`, 'bad'); }
+  });
+  if(eliminationQueue.length) showNextElimination();
+}
+function showNextElimination(){
+  if(!eliminationQueue.length) return;
+  const {L, where} = eliminationQueue.shift();
+  showChoiceModal('Ha caído un cuadro',
+    `<p><b>${L.name}</b>, ${LEADER_TYPES[L.type].label.toLowerCase()}, fue eliminado/a por el aparato represivo en ${where}.</p><p>¿Qué hace el movimiento con su memoria?</p>`,
+    'Convertirle en mártir popular', ()=>{
+      L.status='mártir'; G.martyrs.push(L.name);
+      G.consc=Math.min(100,G.consc+12); G.mom=Math.min(100,G.mom+12); bumpState(10);
+      log(`🕯️ <b>${L.name}</b> es MÁRTIR POPULAR.`, 'event'); emitQuote('martir');
+      render(); showNextElimination();
+    },
+    'Guardar duelo en silencio', ()=>{
+      L.status='eliminado'; G.mom=Math.max(0,G.mom-5);
+      log(`El movimiento llora en silencio a ${L.name}.`, 'bad');
+      render(); showNextElimination();
+    });
+}
+function showChoiceModal(title, html, yesLabel, yesFn, noLabel, noFn){
+  const bg = document.getElementById('choice-modal-bg');
+  document.getElementById('choice-title').innerHTML = title;
+  document.getElementById('choice-text').innerHTML = html;
+  const yes = document.getElementById('choice-yes'), no = document.getElementById('choice-no');
+  yes.textContent = yesLabel; no.textContent = noLabel;
+  yes.onclick = ()=>{ bg.classList.add('hidden'); yesFn(); };
+  no.onclick = ()=>{ bg.classList.add('hidden'); noFn(); };
+  bg.classList.remove('hidden');
+}
+function applyLeaderPassives(){
+  G.leaders.filter(L=>L.status==='desplegado').forEach(L=>{
+    const d = DISTRICTS.find(x=>x.id===L.district); if(!d) return;
+    const gain = 1 + L.skill;
+    switch(L.type){
+      case 'popular': case 'sindical': case 'ancestral': d.org=Math.min(100,d.org+gain); break;
+      case 'periodista': case 'estudiante': G.consc=Math.min(100,G.consc+1); d.org=Math.min(100,d.org+Math.max(1,gain-1)); break;
+      case 'veterano': G.state=Math.max(0,G.state-2); d.org=Math.min(100,d.org+1); break;
+      case 'social': d.org=Math.min(100,d.org+gain); DISTRICTS.forEach(x=>{ if(!x.hostile && x.type==='comunidad' && x.id!==d.id) x.org=Math.min(100,x.org+1); }); break;
+    }
+  });
+}
+
+// ===== EL RÉGIMEN =====
+function regimeAction(minKey, label, detail, cls){
+  const m = MINISTERS[minKey] || {icon:'🏛️', title:'El Régimen'};
+  G.regime.lastMeasure = label;
+  G.regime.lastDetail = detail;
+  G.regime.lastMinister = `${m.icon} ${m.title}`;
+  log(`🏛️ <b>${label}</b> <span style="color:#b08cc8;font-size:0.9em;">— ${m.icon} ${m.title}</span><br>${detail}`, cls||'state');
+}
+function strongestDistrict(){ return DISTRICTS.filter(d=>!d.hostile && d.org>15).sort((a,b)=>b.org-a.org)[0]; }
+function randomOrganized(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>10); return t.length? t[Math.floor(Math.random()*t.length)] : null; }
+function activeLeader(){ const t=G.leaders.filter(L=>['disponible','desplegado'].includes(L.status)); return t.length? t[Math.floor(Math.random()*t.length)] : null; }
+function deployedLeader(){ const t=G.leaders.filter(L=>L.status==='desplegado'); return t.length? t[Math.floor(Math.random()*t.length)] : null; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function applyRepression(d, orgLoss, label, minKey){
+  d.org = Math.max(0, d.org - orgLoss);
+  if(G.consc >= 42){
+    G.consc=Math.min(100,G.consc+5); G.mom=Math.min(100,G.mom+5); G.regime.capital=Math.max(0,G.regime.capital-10);
+    regimeAction(minKey||'interior', label, `La represión se vuelve boomerang: la primera línea protege, los cacerolazos responden, el mundo mira. El régimen pierde capital político.`, 'event');
+    emitQuote('represion', 0.5);
+  } else {
+    G.mom=Math.max(0,G.mom-6);
+    regimeAction(minKey||'interior', label, `El miedo se instala; el régimen gana margen.`, 'bad');
+  }
+}
+function repressionBackfireOnly(label, minKey){
+  if(G.consc >= 42){
+    G.consc=Math.min(100,G.consc+6); G.mom=Math.min(100,G.mom+6); G.regime.capital=Math.max(0,G.regime.capital-12); G.state=Math.max(0,G.state-5);
+    regimeAction(minKey, label, `<b>BACKFIRE</b>: la medida indigna, las cámaras graban, el régimen pierde capital político.`, 'event');
+    emitQuote('represion', 0.5);
+  } else {
+    regimeAction(minKey, label, `El miedo se impone; pocos se atreven a desafiar la medida.`, 'bad');
+  }
+}
+
+function regimePhase(){
+  G.regime.fase = getFase();
+  const moves = G.playerMovesThisTurn || [];
+  const didMobilize = moves.some(m=>['strikew','minga','council','genstrike'].includes(m));
+  const didCounterInfo = moves.includes('countermedia');
+  let count = (G.regime.fase>=4 || didMobilize) ? 2 : 1;
+  let reacted = false;
+  for(let i=0;i<count;i++){
+    if(!reacted && didCounterInfo && G.regime.fase<=3){ regimeBotCounter(); reacted=true; continue; }
+    if(!reacted && didMobilize && G.regime.fase>=3){ regimeRepress(); reacted=true; continue; }
+    switch(G.regime.fase){
+      case 1: regimeFase1(); break;
+      case 2: regimeFase2(); break;
+      case 3: regimeFase3(); break;
+      case 4: regimeFase4(); break;
+      case 5: regimeFase5(); break;
+    }
+  }
+  regimeCapitalDynamics();
+}
+function regimeBotCounter(){
+  G.consc=Math.max(0,G.consc-4); G.regime.bots=2;
+  regimeAction('vocero','Guerra digital','El régimen activa su ejército de bots para ahogar la contrainformación, inundar con tendencias falsas y sembrar confusión.','bad');
+  emitQuote('medios', 0.5);
+}
+function regimeRepress(){
+  const d = strongestDistrict();
+  if(d){ applyRepression(d, 16, `Despliega el ESMAD contra ${d.name}.`, 'interior'); }
+  else regimeFaseByAlert();
+}
+function regimeFaseByAlert(){ const f=getFase(); if(f<=2)regimeFase2(); else if(f===3)regimeFase3(); else if(f===4)regimeFase4(); else regimeFase5(); }
+
+function regimeFase1(){
+  const opts = [
+    ()=>{ G.consc=Math.max(0,G.consc-2); regimeAction('vocero','Silencio mediático','Los medios ignoran la protesta. "Aquí no está pasando nada."', 'bad'); },
+    ()=>{ G.consc=Math.max(0,G.consc-2); G.regime.bots=Math.max(G.regime.bots,1); regimeAction('vocero','Bots de minimización','Cuentas automatizadas instalan: "son cuatro gatos", "no representan a nadie".', 'bad'); },
+    ()=>{ G.consc=Math.max(0,G.consc-2); bumpState(2); regimeAction('vocero','Enemigo externo','El gobierno señala un "enemigo foráneo" que financia las protestas.', 'bad'); },
+  ];
+  opts[Math.floor(Math.random()*opts.length)]();
+}
+function regimeFase2(){
+  const opts = [
+    ()=>{ G.consc=Math.max(0,G.consc-4); G.regime.bots=2; regimeAction('vocero','Granja de bots','Tendencias falsas, cuentas automatizadas y desinformación inundan las redes.', 'bad'); emitQuote('medios',0.4); },
+    ()=>{ G.consc=Math.max(0,G.consc-3); G.mom=Math.max(0,G.mom-4); regimeAction('vocero','Criminalización mediática','Medios privados contra "vándalos y terroristas"; los medios públicos repiten el guion.', 'bad'); emitQuote('medios',0.4); },
+    ()=>{ G.consc=Math.max(0,G.consc-3); regimeAction('vocero','Cadena nacional','El gobierno usa los medios públicos para hablar de "normalidad" y "progreso".', 'bad'); },
+    ()=>{ G.mom=Math.max(0,G.mom-4); regimeAction('vocero','Campaña del miedo','"Con ellos viene el caos, la expropiación, el desabastecimiento."', 'bad'); },
+  ];
+  opts[Math.floor(Math.random()*opts.length)]();
+}
+function regimeFase3(){
+  const opts = [
+    ()=>{ G.mom=Math.max(0,G.mom-6); G.consc=Math.max(0,G.consc-3); G.state=Math.max(0,G.state-8); G.regime.capital=Math.max(0,G.regime.capital-3); regimeAction('economia','Paquete de bonos','El gobierno reparte bonos y subsidios para comprar la calma. "No hay alternativa al ajuste."', 'state'); },
+    ()=>{ G.mom=Math.max(0,G.mom-5); regimeAction('interior','Mesa de diálogo','Convoca una "mesa de diálogo" mientras gana tiempo y desmoviliza.', 'state'); },
+    ()=>{ const L=activeLeader(); if(L){ L.status='cooptado'; L.district=null; regimeAction('economia','Cooptación',`Ofrecieron cargos y contratos a ${L.name}, que se apartó del movimiento.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); regimeAction('economia','Cooptación','El régimen ofrece puestos y contratos para comprar dirigentes.', 'state'); } },
+    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-10); regimeAction('economia','Dividir',`Ofrece un acuerdo sectorial para fracturar la unidad: ${d.name} duda.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); regimeAction('economia','Dividir','El régimen intenta fracturar la unidad con ofertas sectoriales.', 'state'); } },
+  ];
+  opts[Math.floor(Math.random()*opts.length)]();
+}
+function regimeFase4(){
+  const opts = [
+    ()=>{ const d=strongestDistrict(); if(d) applyRepression(d, 18, `Despliega el ESMAD/antidisturbios contra ${d.name}.`, 'interior'); },
+    ()=>{ const L=deployedLeader()||activeLeader(); if(L){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2); regimeAction('interior','Judicialización (lawfare)',`Allanaron y capturaron a ${L.name} por "sedición". Es preso/a político/a.`, 'bad'); } else { const d=strongestDistrict(); if(d) applyRepression(d, 14, `Operativo represivo contra ${d.name}.`, 'interior'); } },
+    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-8); regimeAction('inteligencia','Infiltración',`Infiltrados siembran desconfianza en ${d.name}.`, 'bad'); } },
+    ()=>{ G.consc=Math.max(0,G.consc-3); regimeAction('inteligencia','Estigmatización','Montajes y datos filtrados para estigmatizar a los líderes.', 'bad'); },
+  ];
+  opts[Math.floor(Math.random()*opts.length)]();
+}
+function regimeFase5(){
+  const opts = [
+    ()=>{ G.mom=Math.max(0,G.mom-6); repressionBackfireOnly('Decreta toque de queda.', 'interior'); },
+    ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile && d.org>10) d.org=Math.max(0,d.org-6); }); G.regime.militarizado=2; repressionBackfireOnly('Militariza la ciudad: tanques en las calles.', 'interior'); },
+    ()=>{ G.regime.internet=2; G.consc=Math.max(0,G.consc-4); repressionBackfireOnly('Corta el internet y bloquea redes durante las protestas.', 'inteligencia'); },
+    ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.max(0,d.org-8); }); G.mom=Math.max(0,G.mom-5); repressionBackfireOnly('Decreta estado de sitio: suspensión de garantías.', 'interior'); },
+  ];
+  opts[Math.floor(Math.random()*opts.length)]();
+}
+function regimeCapitalDynamics(){
+  const r=G.regime;
+  if(G.consc>=60 || G.mom>=60) r.capital=Math.max(0,r.capital-3);
+  if(G.consc<25 && G.mom<25) r.capital=Math.min(100,r.capital+2);
+  if(r.capital<=0 && !r.collapsed){
+    r.collapsed=true;
+    G.consc=Math.min(100,G.consc+15); G.mom=Math.min(100,G.mom+15); G.state=Math.max(0,G.state-20);
+    regimeAction('interior','🔥 El régimen se desmorona','Sin capital político ni base social, sus propios aparatos dudan. Los medios dudan, los jueces dudan, los mandos dudan. Es el momento.', 'event');
+    emitQuote('victoria', 0.6);
+  }
+}
+function applyRegimePersistent(){
+  const r=G.regime;
+  if(r.bots>0){ G.consc=Math.max(0,G.consc-2); r.bots--; }
+  if(r.internet>0){ r.internet--; }
+  if(r.militarizado>0){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.org>0) d.org=Math.max(0,d.org-2); }); r.militarizado--; }
+}
+
+// ===== EVENTOS (ampliados) =====
+const EVENTS = [
+  {w:6, fn:evSolidaridad},
+  {w:6, fn:evIniciativa},
+  {w:5, fn:evMural},
+  {w:5, fn:evMusica},
+  {w:5, fn:evFeminista},
+  {w:5, fn:evTerritorio},
+  {w:4, fn:evUniversidad},
+  {w:4, fn:evHuelgaHambre},
+  {w:4, fn:evDenuncia},
+  {w:4, fn:evEscandalo},
+  {w:3, fn:evDesercion},
+  {w:3, fn:evPresionInt},
+  {w:4, fn:evMigrantes},
+  {w:4, fn:evOllas},
+  {w:4, fn:evMingaAgua},
+  {w:4, fn:evCabildo},
+  {w:6, fn:evAjuste},
+  {w:5, fn:evCriminalizacion},
+  {w:4, fn:evInfiltracion},
+  {w:4, fn:evFatiga},
+  {w:3, fn:evDivision},
+  {w:4, fn:evRepresionFocal},
+  {w:3, fn:evDesastre},
+  {w:6, fn:evTranquila},
+];
+function eventPhase(){
+  const total = EVENTS.reduce((s,e)=>s+e.w,0);
+  let r = Math.random()*total;
+  for(const e of EVENTS){ if(r < e.w){ e.fn(); return; } r -= e.w; }
+}
+function evSolidaridad(){ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.min(100,d.org+2); }); G.sp=Math.min(12,G.sp+1);
+  log('🤝 Los movimientos hermanos de la región mandan un fondo de solidaridad y cada frente se fortalece.', 'good'); emitQuote('internacionalismo',0.5); }
+function evIniciativa(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>25); if(t.length){ const d=pick(t); d.org=Math.min(100,d.org+6); log(`⚡ Iniciativa desde abajo: en <b>${d.name}</b> los trabajadores paran espontáneamente contra condiciones abusivas.`, 'good'); } else evTranquila(); }
+function evMural(){ G.consc=Math.min(100,G.consc+3); log('🎨 Los muros amanecen pintados: murales y arte callejero cuentan la verdad que los medios callan. La conciencia crece.', 'good'); emitQuote('cultura',0.6); }
+function evMusica(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+4); log('🎶 Una canción de protesta recorre los barrios y las radios populares.', 'event'); emitQuote('cultura',0.5); }
+function evFeminista(){ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); log('💜 <b>Marea feminista.</b> Las que sostienen la vida y los cuidados paran. "Si nosotras paramos, el mundo se detiene."', 'event'); emitQuote('feminismo',0.6); }
+function evTerritorio(){ G.consc=Math.min(100,G.consc+4); DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+4); }); log('🏔️ Comunidades bloquean la vía contra el extractivismo. "El agua no se vende, el agua se defiende."', 'event'); emitQuote('territorio',0.6); }
+function evUniversidad(){ const u=DISTRICTS.find(d=>d.id==='univ'); if(u){ u.org=Math.min(100,u.org+6); G.consc=Math.min(100,G.consc+3); log('🎓 Toma pacífica de la universidad pública: los estudiantes salen a la calle y la academia se une al pueblo.', 'good'); } else evTranquila(); }
+function evHuelgaHambre(){ const presos=G.leaders.filter(L=>L.status==='preso'); if(presos.length){ G.consc=Math.min(100,G.consc+5); if(Math.random()<0.35){ const L=pick(presos); L.status='disponible'; log(`🕯️ Huelga de hambre de los presos políticos: la presión crece y <b>${L.name}</b> es liberado/a.`, 'good'); } else { log('🕯️ Los presos políticos inician huelga de hambre. La indignación crece y la conciencia se eleva.', 'event'); } emitQuote('martir',0.4); } else evTranquila(); }
+function evDenuncia(){ G.regime.capital=Math.max(0,G.regime.capital-5); G.consc=Math.min(100,G.consc+3); log('📝 Un periodista crítico publica una investigación que expone los negocios del régimen. El capital político del gobierno cae.', 'good'); emitQuote('medios',0.5); }
+function evEscandalo(){ G.regime.capital=Math.max(0,G.regime.capital-7); G.consc=Math.min(100,G.consc+3); G.mom=Math.min(100,G.mom+3); log('💸 <b>Escándalo de corrupción:</b> se filtran documentos que exponen cómo el régimen negoció el ajuste. "La verdad sale a la luz."', 'event'); emitQuote('escandalo',0.5); }
+function evDesercion(){ G.regime.capital=Math.max(0,G.regime.capital-6); G.consc=Math.min(100,G.consc+2); log('🎙️ Un vocero del régimen rompe filas y denuncia la represión en cadena. El relato oficial se agrieta.', 'event'); emitQuote('medios',0.4); }
+function evPresionInt(){ G.regime.capital=Math.max(0,G.regime.capital-4); G.state=Math.max(0,G.state-4); log('🌍 Organismos internacionales condenan la represión. El régimen queda expuesto ante el mundo.', 'good'); emitQuote('internacionalismo',0.4); }
+function evMigrantes(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){ m.org=Math.min(100,m.org+5); G.consc=Math.min(100,G.consc+2); log('🧳 Los trabajadores migrantes se organizan en el mercado: "nadie es ilegal para trabajar".', 'good'); emitQuote('internacionalismo',0.4); } else evTranquila(); }
+function evOllas(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+4); }); log('🍲 Las ollas comunes se multiplican en los barrios. Donde el Estado no llega, llega la solidaridad.', 'good'); emitQuote('fe',0.4); }
+function evMingaAgua(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+5); }); G.consc=Math.min(100,G.consc+3); log('🌽 <b>Minga por el agua:</b> las autoridades ancestrales convocan a defender los páramos y las fuentes de agua.', 'event'); emitQuote('territorio',0.5); }
+function evCabildo(){ G.mom=Math.min(100,G.mom+5); DISTRICTS.forEach(d=>{ if(!d.hostile&&(d.type==='comunidad'||d.type==='intelectual')) d.org=Math.min(100,d.org+2); }); log('🗣️ Cabildo abierto en la plaza: el pueblo delibera y decide. La democracia desde abajo florece.', 'good'); emitQuote('unidad',0.5); }
+function evAjuste(){ G.consc=Math.min(100,G.consc+6); G.mom=Math.max(0,G.mom-2); G.regime.capital=Math.max(0,G.regime.capital-4); log('💥 <b>AJUSTE DEL FMI.</b> Devaluación, tarifazo, despidos. El pueblo pregunta quién produce la riqueza y quién se la lleva.', 'event'); emitQuote('crisis',0.6); }
+function evCriminalizacion(){ if(G.consc<50){ G.mom=Math.max(0,G.mom-4); log('⚠️ Los medios criminalizan la protesta: "violentos", "terroristas". La campaña hace mella.', 'bad'); emitQuote('medios',0.4); } else { G.consc=Math.min(100,G.consc+3); log('La criminalización FRACASA — la gente ya no se traga ese cuento.', 'good'); } }
+function evInfiltracion(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>20); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-8); log(`🕵️ Se descubre un infiltrado sembrando desconfianza en <b>${d.name}</b>. La organización se resiente.`, 'bad'); } else evTranquila(); }
+function evFatiga(){ G.mom=Math.max(0,G.mom-4); log('😮‍💨 El desgaste pasa factura: algunos activistas se agotan y bajan el ritmo. El impulso decae.', 'bad'); }
+function evDivision(){ G.mom=Math.max(0,G.mom-3); const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-5); log(`⚠️ Discusiones internas dividen a <b>${d.name}</b>. El régimen celebra la fractura.`, 'bad'); } else { log('⚠️ Surgen diferencias internas en el movimiento. La unidad hay que cuidarla todos los días.', 'bad'); } }
+function evRepresionFocal(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15).sort((a,b)=>b.org-a.org); if(t.length){ const d=t[0]; d.org=Math.max(0,d.org-10); log(`🚨 Operativo focalizado contra <b>${d.name}</b>: allanamientos y detenciones.`, 'bad'); } else evTranquila(); }
+function evDesastre(){ G.consc=Math.min(100,G.consc+4); G.regime.capital=Math.max(0,G.regime.capital-5); log('🌧️ Una inundación golpea los barrios populares y el Estado brilla por su ausencia. La negligencia queda expuesta y el pueblo se organiza para ayudarse.', 'event'); emitQuote('fe',0.4); }
+function evTranquila(){ log('🌤️ Jornada tranquila. El movimiento aprovecha para consolidar lo construido.', 'state'); }
+
+// ===== RENDER =====
+function render(){
+  document.getElementById('turn').textContent = G.turn;
+  document.getElementById('sp').textContent = G.sp;
+  setBar('consc', G.consc); setBar('mom', G.mom); setBar('state', G.state);
+  const readiness = strikeReadiness();
+  setBar('strike', readiness); document.getElementById('strike-val').textContent = Math.round(readiness)+'%';
+
+  document.getElementById('regimen-fase').textContent = `${G.regime.fase} — ${FASE_NAMES[G.regime.fase]}`;
+  document.getElementById('regimen-capital-bar').style.width = G.regime.capital + '%';
+  document.getElementById('regimen-capital-val').textContent = Math.round(G.regime.capital) + (G.regime.collapsed?' (colapsado)':'');
+  let measures=[];
+  if(G.regime.bots>0) measures.push('🤖 guerra de bots');
+  if(G.regime.internet>0) measures.push('📵 corte de internet');
+  if(G.regime.militarizado>0) measures.push('🪖 militarización');
+  document.getElementById('regimen-measures').textContent = measures.length? measures.join(' · ') : 'ninguna activa';
+  document.getElementById('regimen-last').innerHTML = `<b>${G.regime.lastMeasure}</b> <span class="min">(${G.regime.lastMinister})</span><br>${G.regime.lastDetail}`;
+
+  const grid = document.getElementById('districts'); grid.innerHTML='';
+  DISTRICTS.forEach(d=>{
+    const el = document.createElement('div');
+    el.className = 'district' + (d.hostile?' hostile':'') + (G.selected===d.id?' selected':'');
+    const icon = d.hostile ? (d.type==='capital'?'🏦':d.type==='ideología'?'📰':'🏛️') : '';
+    const leaderHere = G.leaders.find(L=>L.status==='desplegado' && L.district===d.id);
+    el.innerHTML = `${d.council?'<span class="flag">🚩</span>':(d.hostile?'<span class="flag">'+icon+'</span>':'')}
+      <div class="dname">${d.name}</div><div class="dtype">${d.type} — ${d.pop}</div>
+      ${d.hostile
+        ? '<div style="font-size:0.68em;color:#8a5a5a;margin-top:4px;">Pilar del viejo orden.</div>'
+        : `<div class="mlabel"><span>Organización</span><span>${Math.round(d.org)}</span></div>
+           <div class="mini-bar mini-org"><div style="width:${d.org}%"></div></div>
+           ${leaderHere?`<div class="dleader">👤 ${leaderHere.name}</div>`:''}`}`;
+    if(!d.hostile) el.onclick = ()=>{ G.selected = d.id; render(); };
+    grid.appendChild(el);
+  });
+
+  const actDiv = document.getElementById('actions'); actDiv.innerHTML='';
+  ACTIONS.forEach(a=>{
+    const b = document.createElement('button'); b.className='action-btn';
+    b.disabled = G.over || G.sp < a.cost;
+    b.innerHTML = `${a.name} <span class="cost">${a.cost} PS</span><span class="adesc">${a.desc}</span>`;
+    b.onclick = ()=>doAction(a); actDiv.appendChild(b);
+  });
+  renderCuadros();
+}
+function renderCuadros(){
+  const el = document.getElementById('cuadros'); let html='';
+  html += '<div class="cuadro-sub">Reclutamiento disponible</div>';
+  if(!G.candidates.length) html += '<div class="cuadro-empty">Nadie en espera. La lucha revela nuevas figuras a cada jornada.</div>';
+  G.candidates.forEach(c=>{ const t=LEADER_TYPES[c.type];
+    html += `<div class="leader-card candidate"><div class="lmain"><div class="lname">${t.icon} <b>${c.name}</b> — ${t.label} <span class="lskill">hab.${c.skill}</span></div><div class="ldesc">${t.desc}</div></div><button class="mini-btn" onclick="recruitCandidate(${c.id})">Reclutar (${c.cost} PS)</button></div>`; });
+  html += '<div class="cuadro-sub">Cuadros disponibles — selecciona un distrito y envía</div>';
+  const avail = G.leaders.filter(L=>L.status==='disponible');
+  if(!avail.length) html += '<div class="cuadro-empty">Sin cuadros en reserva.</div>';
+  avail.forEach(L=>{ const t=LEADER_TYPES[L.type];
+    html += `<div class="leader-card"><div class="lmain"><div class="lname">${t.icon} <b>${L.name}</b> — ${t.label} <span class="lskill">hab.${L.skill}</span></div><div class="ldesc">${t.desc}</div></div><button class="mini-btn" onclick="deployLeader(${L.id})">→ Enviar (1 PS)</button></div>`; });
+  const dep = G.leaders.filter(L=>L.status==='desplegado');
+  if(dep.length){ html += '<div class="cuadro-sub">Gestionando regiones</div>';
+    dep.forEach(L=>{ const t=LEADER_TYPES[L.type]; const d=DISTRICTS.find(x=>x.id===L.district);
+      html += `<div class="leader-card deployed"><div class="lmain"><div class="lname">${t.icon} ${L.name} → <i>${d?d.name:'?'}</i></div></div><button class="mini-btn" onclick="recallLeader(${L.id})">Retirar</button></div>`; }); }
+  const presos = G.leaders.filter(L=>L.status==='preso');
+  if(presos.length){ html += `<div class="cuadro-sub">Presos políticos (${presos.length})</div>`;
+    presos.forEach(L=>{ html += `<div class="leader-card preso"><div class="lmain"><div class="lname">⛓️ ${L.name} — ${LEADER_TYPES[L.type].label}</div><div class="ldesc">Usa la "Campaña por los presos políticos".</div></div></div>`; }); }
+  const coopt = G.leaders.filter(L=>L.status==='cooptado');
+  if(coopt.length){ html += `<div class="cuadro-sub">Cooptados (${coopt.length})</div>`;
+    coopt.forEach(L=>{ html += `<div class="leader-card cooptado"><div class="lmain"><div class="lname">🐍 ${L.name}</div><div class="ldesc">Aceptó el cargo que le ofrecieron y se apartó.</div></div></div>`; }); }
+  if(G.martyrs.length){ html += `<div class="cuadro-sub">Mártires populares (${G.martyrs.length})</div><div class="cuadro-empty">${G.martyrs.map(m=>'🕯️ '+m).join('<br>')}</div>`; }
+  el.innerHTML = html;
+}
+
+function setBar(name, v){ document.getElementById(name+'-bar').style.width = Math.max(0,Math.min(100,v))+'%'; document.getElementById(name+'-val').textContent = Math.round(v); }
+function strikeReadiness(){ const orgAvg = DISTRICTS.filter(d=>!d.hostile).reduce((s,d)=>s+d.org,0)/DISTRICTS.filter(d=>!d.hostile).length; const councils = DISTRICTS.filter(d=>d.council).length; const bonus = G.regime.collapsed?10:0; return Math.max(0,Math.min(100, orgAvg*0.5 + G.consc*0.3 + G.mom*0.1 + councils*5 + bonus)); }
+
+function doAction(action){
+  if(G.over || G.sp < action.cost) return;
+  const d = DISTRICTS.find(x=>x.id===G.selected) || DISTRICTS[0];
+  const err = action.apply(d);
+  if(err){ log(err,'bad'); return; }
+  G.sp -= action.cost;
+  if(action.id==='genstrike') return;
+  G.playerMovesThisTurn.push(action.id);
+  const leader = G.leaders.find(L=>L.status==='desplegado' && L.district===d.id);
+  if(leader && !d.hostile && ['organize','education','mutualaid','strikew','council'].includes(action.id)){
+    const extra = leader.skill*2; d.org=Math.min(100,d.org+extra);
+    log(`Bajo la dirección de <b>${leader.name}</b>, la acción rinde más: +${extra} Organización extra.`, 'good');
+  }
+  render();
+}
+function bumpState(n){ G.state = Math.min(100, G.state + n); }
+
+function desgasteOrganizacion(){
+  const desgaste = G.regime.militarizado>0 ? 2 : 1;
+  DISTRICTS.forEach(d=>{ if(!d.hostile && d.org>12 && Math.random()<0.35) d.org=Math.max(0,d.org-desgaste); });
+}
+
+function endTurn(){
+  if(G.over) return;
+  regimePhase();
+  leaderRiskPhase();
+  applyLeaderPassives();
+  applyRegimePersistent();
+  desgasteOrganizacion();
+  eventPhase();
+  maybeSpawnCandidate();
+  expireCandidates();
+  G.playerMovesThisTurn = [];
+  G.turn++;
+  const orgSum = DISTRICTS.filter(d=>!d.hostile).reduce((s,d)=>s+d.org,0);
+  G.sp = Math.min(12, 2 + Math.floor(orgSum/40));
+  G.mom = Math.max(0, G.mom - 2);
+  if(G.consc > 10 && Math.random() < 0.5) G.consc = Math.max(0, G.consc - 1);
+  checkDefeat();
+  render();
+}
+
+function attemptGeneralStrike(){
+  const readiness = strikeReadiness();
+  log(`⚑ SE CONVOCA AL PARO GENERAL. Preparación: ${Math.round(readiness)}%.`, 'event');
+  if(readiness >= 85){
+    G.over = true;
+    document.getElementById('end-title').textContent = '🚩 VICTORIA — EL PAÍS SE DETIENE';
+    document.getElementById('end-text').innerHTML = `
+      <p>Al amanecer, nada se mueve. La mina está parada, el puerto vacío, no hay buses ni mercado. La minga descansa en asamblea. Los bancos no pueden contar lo que nadie produce.</p>
+      <p>No se disparó un solo tiro. La clase dominante descubre lo que siempre supieron los organizadores: <strong>su poder era prestado — prestado, cada día, del trabajo y la obediencia de millones.</strong> Los bots ya no engañan, los medios ya no mandan, los bonos ya no compran, las armas ya no obedecen.</p>
+      <p>Las asambleas, las comunas y los cabildos coordinan la vida. El poder comunal empieza a administrar.</p>
+      ${G.martyrs.length ? `<p>Los mártires son nombrados uno a uno: <b>${G.martyrs.join(', ')}</b>. No murieron: se sembraron.</p>` : ''}
+      <blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>
+      <p><b>Completado en ${G.turn} jornadas.</b></p>`;
+    document.getElementById('endscreen').classList.remove('hidden');
+  } else {
+    G.mom=Math.max(0,G.mom-15); bumpState(15);
+    log(`El paro se convoca antes de tiempo. Preparación ${Math.round(readiness)}% — hacía falta 85%. El movimiento se repliega, herido pero más sabio.`, 'bad');
+  }
+  render();
+}
+
+function checkDefeat(){
+  const anyBase = DISTRICTS.some(d => !d.hostile && d.org >= 10);
+  if(!anyBase && G.turn > 3){
+    G.over = true;
+    document.getElementById('end-title').textContent = 'EL MOVIMIENTO ES DESMANTELADO';
+    document.getElementById('end-text').innerHTML = `
+      <p>La organización cae por debajo del umbral de supervivencia. Los cuadros se dispersan — vigilados, procesados, cooptados.</p>
+      <p>El régimen respira. Sus medios decretan que nada cambió, que nada puede cambiar.</p>
+      <p>Pero la historia de América Latina no se cierra tan fácil. Cada movimiento derrotado deja experiencia, cuadros y memoria.</p>
+      <blockquote>"La utopía está en el horizonte. Camino dos pasos, ella se aleja dos pasos. ¿Para qué sirve? Para eso: sirve para caminar." — Eduardo Galeano</blockquote>
+      <p><b>Estudiar la derrota. Volver a empezar.</b></p>`;
+    document.getElementById('endscreen').classList.remove('hidden');
+  }
+}
+
+function log(msg, cls){
+  const el = document.getElementById('log');
+  const p = document.createElement('p');
+  p.className = cls ? 'log-'+cls : ''; p.innerHTML = msg;
+  el.prepend(p);
+  while(el.children.length > 80) el.removeChild(el.lastChild);
+}
+</script>
+</body>
+</html>
