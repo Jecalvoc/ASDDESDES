@@ -12,10 +12,12 @@
   header { text-align:center; border-bottom:3px solid var(--red); padding-bottom:12px; margin-bottom:16px; }
   header h1 { color:var(--red); font-size:1.9em; text-transform:uppercase; }
   header .subtitle { color:var(--gold); font-style:italic; font-size:1.05em; }
-  .layout { display:grid; grid-template-columns:260px 1fr 300px; gap:14px; }
+  .layout { display:grid; grid-template-columns:270px 1fr 300px; gap:14px; }
   @media (max-width:980px){ .layout{grid-template-columns:1fr;} }
   .panel { background:var(--panel); border:1px solid #3a342e; border-radius:6px; padding:12px; }
   .panel h2 { font-size:0.95em; color:var(--gold); text-transform:uppercase; border-bottom:1px solid #3a342e; padding-bottom:6px; margin-bottom:10px; }
+  .dos-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:700px){ .dos-col{grid-template-columns:1fr;} }
   .meter { margin-bottom:12px; }
   .meter label { font-size:0.85em; display:flex; justify-content:space-between; margin-bottom:3px; }
   .bar { height:14px; background:#000; border-radius:3px; overflow:hidden; border:1px solid #444; }
@@ -25,9 +27,11 @@
   .bar-state > div { background:linear-gradient(90deg,#33475c,var(--blue)); }
   .bar-mom > div { background:linear-gradient(90deg,#35502e,var(--green)); }
   .bar-regime > div { background:linear-gradient(90deg,#3a1f4a,#8a3b6e); }
-  .bar-rm > div { background:linear-gradient(90deg,#5c4a1f,#a8842f); }
   .meta-hint { font-size:0.68em; color:var(--dim); margin-top:2px; margin-bottom:10px; }
   #condiciones-activas { font-size:0.68em; color:var(--gold); margin-top:2px; margin-bottom:10px; }
+  .rec-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:0.8em; margin-bottom:4px; }
+  .rec-grid div { background:var(--panel2); border-radius:3px; padding:3px 6px; }
+  .rec-grid b { color:var(--gold); }
   .districts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
   @media (max-width:600px){ .districts{grid-template-columns:repeat(2,1fr);} }
   .district { background:var(--panel2); border:1px solid #3a342e; border-radius:5px; padding:8px; cursor:pointer; transition:transform 0.1s,border-color 0.2s; position:relative; }
@@ -44,6 +48,7 @@
   .district .dleader { font-size:0.63em; color:var(--green); margin-top:3px; }
   .district .draporte { font-size:0.6em; color:var(--gold); margin-top:2px; }
   .district .dcoop { font-size:0.62em; color:var(--green); margin-top:2px; font-weight:bold; }
+  .district .druta { font-size:0.6em; color:var(--red); margin-top:2px; font-weight:bold; }
   .flag { position:absolute; top:6px; right:8px; font-size:0.9em; }
   .action-btn { display:block; width:100%; text-align:left; background:var(--panel2); color:var(--text); border:1px solid #3a342e; border-radius:4px; padding:8px 10px; margin-bottom:6px; cursor:pointer; font-family:inherit; font-size:0.83em; transition:background 0.15s; }
   .action-btn:hover:not(:disabled) { background:#332d28; border-color:var(--gold); }
@@ -53,7 +58,7 @@
   .action-btn.sec2 { border-color:var(--green); }
   #end-turn { background:var(--red); color:#fff; border:none; font-family:'Arial Black',Arial,sans-serif; text-align:center; margin-top:8px; text-transform:uppercase; letter-spacing:1px; }
   #end-turn:hover:not(:disabled) { background:#e0343b; }
-  #cuadros { max-height:220px; overflow-y:auto; font-size:0.8em; }
+  #cuadros { max-height:200px; overflow-y:auto; font-size:0.8em; }
   .cuadro-sub { color:var(--gold); font-size:0.85em; margin:9px 0 4px; text-transform:uppercase; letter-spacing:0.5px; }
   .cuadro-empty { color:var(--dim); font-style:italic; padding:2px 0; }
   .leader-card { background:var(--panel2); border:1px solid #3a342e; border-radius:4px; padding:6px 8px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
@@ -70,7 +75,7 @@
   #regimen-last { font-size:0.75em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:6px; color:var(--dim); }
   #regimen-last b { color:var(--text); }
   #regimen-last .min { color:#b08cc8; }
-  #log { height:160px; overflow-y:auto; font-size:0.78em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:8px; }
+  #log { height:140px; overflow-y:auto; font-size:0.78em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:8px; }
   #log p { margin-bottom:6px; border-bottom:1px dotted #2a2622; padding-bottom:4px; }
   .log-event { color:var(--gold); }
   .log-state { color:#7da3c8; }
@@ -82,6 +87,22 @@
   .mem-item b { color:var(--text); }
   .mem-item:last-child { border-bottom:none; }
   #sec2-status { font-size:0.8em; }
+  /* Mercado / rutas / diario */
+  select { background:var(--panel2); color:var(--text); border:1px solid #3a342e; border-radius:4px; padding:4px; font-family:inherit; font-size:0.8em; }
+  .mercado-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .rutas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+  .ruta-chip { background:var(--panel2); border-radius:5px; padding:8px; font-size:0.72em; cursor:pointer; border:1px solid #3a342e; text-align:center; }
+  .ruta-chip small { color:var(--dim); }
+  .ruta-abierta { border-color:var(--green); }
+  .ruta-bloqueada { border-color:var(--red); background:#2a1515; }
+  .diario { max-height:230px; overflow-y:auto; font-size:0.78em; }
+  .diario p { border-bottom:1px dotted #2a2622; padding:3px 0; }
+  .diario b { color:var(--gold); }
+  .diario .tipo { color:var(--blue); font-size:0.85em; }
+  #historia-tabla { max-height:230px; overflow-y:auto; }
+  #historia-tabla table { width:100%; border-collapse:collapse; font-size:0.78em; }
+  #historia-tabla th, #historia-tabla td { border:1px solid #3a342e; padding:3px 6px; text-align:center; }
+  #historia-tabla th { color:var(--gold); }
   .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
   .modal { background:var(--panel); border:2px solid var(--red); border-radius:8px; max-width:720px; max-height:85vh; overflow-y:auto; padding:28px; }
   .modal h2 { color:var(--red); margin-bottom:12px; text-transform:uppercase; }
@@ -109,9 +130,16 @@
     <div class="panel" style="margin-bottom:14px;">
       <h2>Estado del Movimiento</h2>
       <div class="status-row"><span>Jornada</span><span id="turn">1</span></div>
+      <div class="status-row"><span>Dificultad</span><span id="dif-label">Normal</span></div>
       <div class="status-row"><span>Puntos de Solidaridad</span><span id="sp">5</span></div>
-      <div class="meter"><label>Fondo Común (RM) <span id="rm-val">12</span></label><div class="bar bar-rm"><div id="rm-bar" style="width:60%"></div></div></div>
-      <div class="meta-hint" id="rm-flow"></div>
+      <h2 style="margin-top:8px;">Recursos del Fondo Común</h2>
+      <div class="rec-grid">
+        <div>🍞 Alimentos: <b id="rec-alimentos">6</b></div>
+        <div>🔧 Herramientas: <b id="rec-herramientas">4</b></div>
+        <div>🧱 Materiales: <b id="rec-materiales">4</b></div>
+        <div>💻 Tecnología: <b id="rec-tecnologia">2</b></div>
+      </div>
+      <div class="meta-hint" id="rec-flow"></div>
       <div id="condiciones-activas"></div>
       <div class="meter"><label>Conciencia de Clase <span id="consc-val">15</span></label><div class="bar bar-consc"><div id="consc-bar" style="width:15%"></div></div></div>
       <div class="meter"><label>Impulso <span id="mom-val">10</span></label><div class="bar bar-mom"><div id="mom-bar" style="width:10%"></div></div></div>
@@ -140,7 +168,7 @@
     <div class="panel">
       <h2>La Ciudad y el Territorio — Terreno de la Lucha de Clases</h2>
       <div class="districts" id="districts"></div>
-      <p style="font-size:0.75em;color:var(--dim);margin-top:10px;">💡 Cada comunidad organizada aporta al Fondo Común. El clima, la economía y la represión cambian cada jornada: adapta tu estrategia.</p>
+      <p style="font-size:0.75em;color:var(--dim);margin-top:10px;">💡 Cada sector produce un recurso distinto y necesita una ruta de abastecimiento abierta. El régimen puede bloquear rutas: reábrelas abajo.</p>
     </div>
 
     <div class="panel hidden" id="sec2-panel" style="margin-top:14px; border-color:var(--green);">
@@ -173,6 +201,54 @@
   </div>
 </div>
 
+<!-- SECCIONES NUEVAS: MERCADO + RUTAS -->
+<div style="margin-top:14px;">
+  <div class="panel">
+    <h2>🪙 Mercado Popular · 🛣️ Rutas de Abastecimiento</h2>
+    <div class="dos-col">
+      <div>
+        <p style="font-size:0.75em;color:var(--dim);margin-bottom:8px;">Intercambia recursos entre comunidades. Tasa: entregas 2 y recibes 1.</p>
+        <div class="mercado-row">
+          <select id="merc-origen">
+            <option value="alimentos">🍞 Alimentos</option>
+            <option value="herramientas">🔧 Herramientas</option>
+            <option value="materiales">🧱 Materiales</option>
+            <option value="tecnologia">💻 Tecnología</option>
+          </select>
+          <span style="color:var(--dim)">→</span>
+          <select id="merc-destino">
+            <option value="herramientas">🔧 Herramientas</option>
+            <option value="alimentos">🍞 Alimentos</option>
+            <option value="materiales">🧱 Materiales</option>
+            <option value="tecnologia">💻 Tecnología</option>
+          </select>
+          <button class="mini-btn" onclick="intercambiar()">Cambiar (2→1)</button>
+        </div>
+        <div id="merc-info" style="font-size:0.72em;color:var(--dim);"></div>
+      </div>
+      <div>
+        <p style="font-size:0.75em;color:var(--dim);margin-bottom:8px;">🟢 Ruta abierta · 🔴 Bloqueada por el régimen. Clic en una ruta roja para reabrirla (1 PS + 1 🧱).</p>
+        <div class="rutas-grid" id="rutas"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIARIO + ANÁLISIS -->
+  <div class="panel" style="margin-top:14px;">
+    <h2>📔 Diario de la Lucha</h2>
+    <div class="dos-col">
+      <div>
+        <h3 style="font-size:0.85em;color:var(--gold);margin-bottom:6px;">Decisiones y consecuencias</h3>
+        <div class="diario" id="diario-lista"></div>
+      </div>
+      <div>
+        <h3 style="font-size:0.85em;color:var(--gold);margin-bottom:6px;">Análisis lineal de recursos por jornada (nivel · variación)</h3>
+        <div id="historia-tabla"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>"Los filósofos no han hecho más que interpretar el mundo de diversos modos; de lo que se trata es de transformarlo." — Karl Marx</footer>
 
 <!-- INTRO -->
@@ -183,15 +259,17 @@
     <h3>La premisa materialista</h3>
     <p>Toda clase dominante depende del <em>trabajo y la obediencia</em> de quienes explota. Cuando quienes producen retiran su consentimiento, la máquina se detiene.</p>
     <h3>La base material</h3>
-    <p>El movimiento se sostiene con los <strong>recursos que las comunidades organizadas aportan</strong> al Fondo Común. Invierte en <strong>proyectos productivos</strong> para aumentar el aporte permanente.</p>
+    <p>El Fondo Común tiene <strong>cuatro recursos</strong>, cada uno producido por un sector: 🍞 Alimentos (Barrio, Mercado, Resguardo, Comuna), 🔧 Herramientas (Maquila, Puerto), 🧱 Materiales (Mega-minería, Maquila), 💻 Tecnología (Puerto, Universidad). Cada acción consume recursos específicos. Usa el <strong>Mercado Popular</strong> para intercambiar y vigila las <strong>Rutas de Abastecimiento</strong>: el régimen puede bloquearlas.</p>
     <h3>Un mundo que cambia</h3>
-    <p>La realidad no se detiene: <strong>sequías, epidemias, inflación, apagones, bonanzas, crisis internacionales, terremotos, reformas regresivas y olas de solidaridad</strong> aparecerán y cambiarán las reglas durante varias jornadas. Algunas condiciones se pueden contrarrestar con decisiones (brigadas de salud, defensa del agua, organización ante despidos). <strong>Adaptarse es parte de la lucha.</strong></p>
+    <p>Sequías, epidemias, inflación, apagones, crisis internacionales y represión cambiarán las reglas. El <strong>Diario de la Lucha</strong> registra tus decisiones y una tabla analiza tus recursos jornada a jornada.</p>
     <h3>Sección 2 — Consolidar el Poder Popular</h3>
-    <p>Cuando la <strong>Conciencia supera el 60%</strong>, puedes pasar de resistir a <strong>construir la nueva sociedad</strong>: cooperativas de trabajadores, un medio comunitario y un Frente Popular amplio.</p>
-    <h3>Tu tarea</h3>
-    <p>🔨 Organizar. 📖 Elevar la conciencia. 🤝 Construir unidad. 💰 Sostener el Fondo Común. 🏗️ Proyectos productivos. 👥 Enviar cuadros. 🌦️ Adaptarte a las condiciones. ⭐ Consolidar el poder popular. ⚑ Convocar al <strong>Paro General</strong>.</p>
+    <p>Con Conciencia ≥ 60% puedes construir la nueva sociedad: cooperativas de trabajadores, un medio comunitario y un Frente Popular amplio.</p>
+    <h3>Elige la dificultad</h3>
+    <p>🌱 <b>Suave</b>: régimen débil, más recursos. ⚖️ <b>Normal</b>: la experiencia equilibrada. 🔥 <b>Difícil</b>: régimen fuerte, escasez y más represión.</p>
     <blockquote>"Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui</blockquote>
-    <button onclick="startGame()">Comenzar a organizar</button>
+    <button onclick="startGame('suave')">🌱 Comenzar — Suave</button>
+    <button onclick="startGame('normal')">⚖️ Comenzar — Normal</button>
+    <button onclick="startGame('dificil')">🔥 Comenzar — Difícil</button>
   </div>
 </div>
 
@@ -206,6 +284,14 @@
 </div>
 
 <script>
+// ===== DIFICULTAD =====
+const DIFFICULTIES = {
+  suave:  { label:'Suave',   regimeCapital:70,  alertStart:15, resMult:1.4, attrition:0.3, repMod:0.7, conscDecay:0.35 },
+  normal: { label:'Normal',  regimeCapital:90,  alertStart:20, resMult:1.0, attrition:0.4, repMod:1.0, conscDecay:0.5 },
+  dificil:{ label:'Difícil', regimeCapital:110, alertStart:30, resMult:0.7, attrition:0.5, repMod:1.3, conscDecay:0.6 },
+};
+let DIFF = null;
+
 const DISTRICT_DEFS = [
   { id:'mina', name:'Proyecto Mega-minero (Litio)', type:'producción', pop:'2.000 trabajadores + territorio', base:20 },
   { id:'maquila', name:'Maquila / Parque Industrial', type:'producción', pop:'5.000 obreros y obreras', base:15 },
@@ -227,14 +313,13 @@ const MINISTERS = {
   inteligencia:{ icon:'🕵️', title:'Jefe de Inteligencia', motto:'"Los estamos observando"' },
 };
 
-// ===== CONDICIONES PERSISTENTES =====
 const CONDICIONES = {
-  sequia:     { name:'🌵 Sequía', desc:'El territorio sufre escasez de agua; los territorios pierden más organización.' },
-  epidemia:   { name:'🦠 Crisis sanitaria', desc:'El Estado abandona la salud; la organización se desgasta más rápido.' },
-  inflacion:  { name:'📈 Inflación', desc:'El Fondo Común rinde menos.' },
-  corteEnergia:{ name:'⚡ Cortes de energía', desc:'Apagones: los distritos de producción aportan menos.' },
-  bonanza:    { name:'🌾 Buena cosecha', desc:'Abundancia material: +aporte comunitario.' },
-  solidaridad:{ name:'🌎 Ola de solidaridad', desc:'Apoyo internacional: +aporte y recursos.' },
+  sequia:     { name:'🌵 Sequía', desc:'Los territorios pierden más organización y alimentos.' },
+  epidemia:   { name:'🦠 Crisis sanitaria', desc:'La organización se desgasta más rápido.' },
+  inflacion:  { name:'📈 Inflación', desc:'La producción de todos los recursos cae 40%.' },
+  corteEnergia:{ name:'⚡ Cortes de energía', desc:'Los distritos de producción aportan menos.' },
+  bonanza:    { name:'🌾 Buena cosecha', desc:'+40% de alimentos.' },
+  solidaridad:{ name:'🌎 Ola de solidaridad', desc:'+20% a todos los recursos.' },
 };
 function hasCond(k){ return G.condiciones[k] !== undefined && G.condiciones[k] > 0; }
 function setCond(k, turns){ G.condiciones[k] = Math.max(G.condiciones[k]||0, turns); log(`🌦️ Se activa: <b>${CONDICIONES[k].name}</b> — ${CONDICIONES[k].desc} (${G.condiciones[k]} jornadas)`, 'event'); }
@@ -244,6 +329,8 @@ function tickCondiciones(){
     if(G.condiciones[k]<=0){ log(`Pasa la condición: ${CONDICIONES[k].name}.`, 'state'); delete G.condiciones[k]; }
   });
 }
+
+const REC_NAMES = { alimentos:'🍞 Alimentos', herramientas:'🔧 Herramientas', materiales:'🧱 Materiales', tecnologia:'💻 Tecnología' };
 
 const QUOTE_POOLS = {
   represion: [
@@ -354,9 +441,9 @@ const ACTIONS = [
     apply: d => { if (d.hostile) return 'Las instituciones dominantes educan para la obediencia.'; d.org = Math.min(100, d.org + 6); G.consc = Math.min(100, G.consc + 4); log(`Círculo de formación en <b>${d.name}</b>.`, 'good'); bumpState(2); emitQuote('conciencia', 0.6); } },
   { id:'leaflet', name:'Volanteada', cost:1, desc:'+2 Conciencia en toda la ciudad.',
     apply: d => { G.consc = Math.min(100, G.consc + 2); log('Los volantes circulan y el malestar se vuelve comprensión colectiva.', 'good'); emitQuote('conciencia', 0.3); } },
-  { id:'mutualaid', name:'Ollas comunes y red barrial', cost:3, rmCost:2, desc:'+5 Organización, +3 Impulso. Consume recursos del Fondo Común.',
+  { id:'mutualaid', name:'Ollas comunes y red barrial', cost:3, costoRecursos:{alimentos:2}, desc:'+5 Organización, +3 Impulso. Consume 🍞 Alimentos.',
     apply: d => { if (d.hostile) return 'La caridad desde arriba no organiza desde abajo.'; d.org = Math.min(100, d.org + 5); G.mom = Math.min(100, G.mom + 3); log(`Ollas comunes y fondo de arriendo en <b>${d.name}</b>.`, 'good'); emitQuote('economia', 0.4); emitQuote('fe', 0.3); } },
-  { id:'project', name:'Proyecto productivo comunal', cost:2, rmCost:6, desc:'Crea taller/huerta comunal. +1 aporte permanente al distrito. Máx 3. Requiere Org ≥ 30.',
+  { id:'project', name:'Proyecto productivo comunal', cost:2, costoRecursos:{materiales:3, herramientas:2}, desc:'Crea taller/huerta. +1 aporte permanente. Máx 3. Requiere Org ≥ 30. Consume 🧱+🔧.',
     apply: d => {
       if(d.hostile) return 'No se construye en bastiones del enemigo.';
       if(d.org<30) return `${d.name} necesita Organización ≥ 30 para sostener un proyecto.`;
@@ -365,23 +452,22 @@ const ACTIONS = [
       log(`🏗️ Proyecto productivo comunal en <b>${d.name}</b> (${d.projects}/3): su aporte material crece de forma permanente.`, 'good');
       emitQuote('economia',0.4);
     } },
-  { id:'minga', name:'Convocar la Minga', cost:4, rmCost:2, desc:'+6 Org a comunidades y territorios, +5 Conciencia, +4 Impulso.',
+  { id:'minga', name:'Convocar la Minga', cost:4, costoRecursos:{alimentos:2}, desc:'+6 Org a comunidades y territorios, +5 Conciencia, +4 Impulso. Consume 🍞.',
     apply: d => { let n=0; DISTRICTS.forEach(x=>{ if(!x.hostile && (x.type==='comunidad'||x.type==='territorio'||x.type==='intelectual')){ x.org=Math.min(100,x.org+6); n++; } }); G.consc=Math.min(100,G.consc+5); G.mom=Math.min(100,G.mom+4); bumpState(5); log(`🌽 <b>Se convoca la Minga.</b> ${n} frentes se fortalecen.`, 'event'); emitQuote('unidad', 0.6); } },
-  { id:'strikew', name:'Cese de actividades', cost:4, rmCost:3, desc:'Requiere Org ≥ 40. +8 Conciencia, +8 Impulso, dispara Alerta.',
+  { id:'strikew', name:'Cese de actividades', cost:4, costoRecursos:{alimentos:3}, desc:'Requiere Org ≥ 40. +8 Conciencia, +8 Impulso, dispara Alerta. Consume 🍞.',
     apply: d => { if (d.hostile) return 'Ahí no mandan ustedes.'; if (d.org < 40) return `${d.name} necesita Organización ≥ 40.`; G.consc=Math.min(100,G.consc+8); G.mom=Math.min(100,G.mom+8); bumpState(10); log(`⚡ ¡Cese de actividades en <b>${d.name}</b>!`, 'event'); } },
   { id:'unity', name:'Campaña de unidad', cost:3, desc:'+5 Organización en TODOS los distritos organizados.',
     apply: d => { let n=0; DISTRICTS.forEach(x=>{ if(!x.hostile && x.org>5){ x.org=Math.min(100,x.org+5); n++; } }); log(`La unidad tiende puentes. ${n} distritos se fortalecen.`, 'good'); bumpState(4); emitQuote('unidad', 0.6); } },
-  { id:'comunal', name:'Articular la red comunal', cost:3, rmCost:2, desc:'Requiere 2+ Asambleas. +3 Org a cada una, +6 Impulso.',
+  { id:'comunal', name:'Articular la red comunal', cost:3, costoRecursos:{materiales:2}, desc:'Requiere 2+ Asambleas. +3 Org a cada una, +6 Impulso. Consume 🧱.',
     apply: d => { const c=DISTRICTS.filter(x=>x.council); if(c.length<2) return 'Se necesitan al menos 2 Asambleas Populares.'; c.forEach(x=>x.org=Math.min(100,x.org+3)); G.mom=Math.min(100,G.mom+6); bumpState(5); log(`🔗 Las comunas se federan en una red de poder comunal.`, 'event'); } },
-  { id:'countermedia', name:'Contrainformación', cost:3, desc:'Requiere Conciencia ≥ 30. −8 Alerta, +4 Conciencia. Bloqueada si hay corte de internet.',
+  { id:'countermedia', name:'Contrainformación', cost:3, costoRecursos:{tecnologia:2}, desc:'Requiere Conciencia ≥ 30. −8 Alerta, +4 Conciencia. Consume 💻. Bloqueada si hay corte de internet.',
     apply: d => { if(G.regime.internet>0) return 'El régimen cortó el internet: la contrainformación está bloqueada.'; if (G.consc < 30) return 'La conciencia debe llegar a 30 primero.'; G.state=Math.max(0,G.state-8); G.consc=Math.min(100,G.consc+4); log('Radios comunitarias y redes populares rompen el monopolio de la palabra.', 'good'); emitQuote('medios', 0.6); } },
-  { id:'council', name:'Formar Asamblea Popular', cost:5, rmCost:2, desc:'Requiere Org ≥ 70. Semilla del poder popular. +10 Impulso.',
+  { id:'council', name:'Formar Asamblea Popular', cost:5, costoRecursos:{materiales:2}, desc:'Requiere Org ≥ 70. Semilla del poder popular. +10 Impulso. Consume 🧱.',
     apply: d => { if (d.hostile) return 'Las asambleas nacen desde abajo.'; if (d.org < 70) return `${d.name} necesita Organización ≥ 70 (tiene ${Math.round(d.org)}).`; if (d.council) return 'Ya funciona una asamblea aquí.'; d.council = true; G.mom = Math.min(100, G.mom + 10); bumpState(8); log(`🚩 ASAMBLEA POPULAR en <b>${d.name}</b>.`, 'event'); } },
   { id:'freepress', name:'Campaña por los presos políticos', cost:4, desc:'Requiere 1+ preso. Posibilidad de liberar a uno. +4 Conciencia.',
     apply: d => { const presos=G.leaders.filter(L=>L.status==='preso'); if(presos.length===0) return 'No hay presos políticos por quienes exigir libertad.'; G.consc=Math.min(100,G.consc+4); bumpState(3); if(Math.random()<0.55){ const L=presos[Math.floor(Math.random()*presos.length)]; L.status='disponible'; log(`✊ <b>${L.name}</b> es liberado/a.`, 'good'); } else { log('La campaña moviliza, pero el Estado aún no cede.', 'state'); } } },
-  // SECCIÓN 2
-  { id:'cooperative', sec2:true, name:'⭐ Formar Cooperativa de Trabajadores', cost:3, rmCost:8,
-    desc:'[Sección 2] Requiere distrito de producción con Org ≥ 60. Los trabajadores asumen democráticamente la producción.',
+  { id:'cooperative', sec2:true, name:'⭐ Formar Cooperativa de Trabajadores', cost:3, costoRecursos:{herramientas:3, materiales:3},
+    desc:'[Sección 2] Requiere distrito de producción con Org ≥ 60. Los trabajadores asumen la producción. Consume 🔧+🧱.',
     apply: d => {
       if(d.type!=='producción') return 'Las cooperativas se forman en distritos de producción.';
       if(d.org<60) return `${d.name} necesita Organización ≥ 60.`;
@@ -390,16 +476,16 @@ const ACTIONS = [
       log(`🔧 <b>${d.name}</b> pasa a ser COOPERATIVA DE TRABAJADORES: quienes producen deciden democráticamente.`, 'event');
       emitQuote('economia',0.6);
     } },
-  { id:'commedia', sec2:true, name:'⭐ Fundar Medio Comunitario', cost:3, rmCost:6,
-    desc:'[Sección 2] Una sola vez. La palabra deja de ser monopolio. Reduce la guerra de bots y suma Conciencia.',
+  { id:'commedia', sec2:true, name:'⭐ Fundar Medio Comunitario', cost:3, costoRecursos:{tecnologia:3},
+    desc:'[Sección 2] Una sola vez. La palabra deja de ser monopolio. Reduce la guerra de bots. Consume 💻.',
     apply: d => {
       if(G.medioComunitario) return 'Ya existe el medio comunitario.';
       G.medioComunitario = true;
       log(`📻 Se funda el <b>Medio Comunitario</b>: la comunicación pasa a manos del pueblo.`, 'event');
       emitQuote('medios',0.7);
     } },
-  { id:'front', sec2:true, name:'⭐ Consolidar el Frente Popular', cost:4,
-    desc:'[Sección 2] Requiere ≥ 3 Asambleas. Une a todos los movimientos en un frente amplio democrático. +15 Preparación.',
+  { id:'front', sec2:true, name:'⭐ Consolidar el Frente Popular', cost:4, costoRecursos:{alimentos:2},
+    desc:'[Sección 2] Requiere ≥ 3 Asambleas. Une a todos los movimientos. +15 Preparación. Consume 🍞.',
     apply: d => {
       const councils = DISTRICTS.filter(x=>x.council).length;
       if(councils<3) return `Se necesitan ≥ 3 Asambleas Populares (hay ${councils}).`;
@@ -415,17 +501,37 @@ const ACTIONS = [
 let G, DISTRICTS, eliminationQueue = [];
 
 function initGame() {
-  G = { turn:1, sp:5, consc:15, mom:10, state:20, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[], recursos:12, medioComunitario:false, frentePopular:false, condiciones:{} };
-  G.regime = { capital:90, fase:1, bots:0, internet:0, militarizado:0, collapsed:false, lastMeasure:'Observa', lastDetail:'El régimen aún subestima al movimiento.', lastMinister:'🏛️ El Régimen' };
-  DISTRICTS = DISTRICT_DEFS.map(d => ({...d, org: d.hostile ? 100 : d.base, council:false, projects:0, cooperative:false }));
+  G = { turn:1, sp:5, consc:15, mom:10, state:DIFF.alertStart, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[],
+        rec:{alimentos:Math.round(6*DIFF.resMult), herramientas:Math.round(4*DIFF.resMult), materiales:Math.round(4*DIFF.resMult), tecnologia:Math.round(2*DIFF.resMult)},
+        medioComunitario:false, frentePopular:false, condiciones:{}, diario:[], historia:[] };
+  G.regime = { capital:DIFF.regimeCapital, fase:1, bots:0, internet:0, militarizado:0, collapsed:false, lastMeasure:'Observa', lastDetail:'El régimen aún subestima al movimiento.', lastMinister:'🏛️ El Régimen' };
+  DISTRICTS = DISTRICT_DEFS.map(d => ({...d, org: d.hostile ? 100 : d.base, council:false, projects:0, cooperative:false, ruta:'abierta' }));
   G.leaders.push(makeLeader('popular'));
   G.leaders.push(makeLeader('sindical'));
-  log('Comienzas con dos cuadros y un pequeño Fondo Común. Organiza comunidades: su aporte sostendrá la lucha.', 'quote');
+  registrarDiario('inicio', `Partida iniciada en dificultad ${DIFF.label}.`);
+  log('Comienzas con dos cuadros y un pequeño Fondo Común. Organiza comunidades: cada sector produce un recurso distinto.', 'quote');
   log('📖 "Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui', 'quote');
   render();
 }
-function startGame(){ document.getElementById('intro').classList.add('hidden'); initGame(); }
+function startGame(key){
+  DIFF = DIFFICULTIES[key];
+  document.getElementById('intro').classList.add('hidden');
+  initGame();
+}
 function seccion2Activa(){ return G.consc >= 60; }
+
+// ===== DIARIO E HISTORIA =====
+function registrarDiario(type, text){
+  G.diario.push({turn:G.turn, type, text});
+  if(G.diario.length>250) G.diario.shift();
+}
+function snapshotRecursos(){
+  const prev = G.historia.length? G.historia[G.historia.length-1] : null;
+  const cur = { turn:G.turn, a:G.rec.alimentos, h:G.rec.herramientas, m:G.rec.materiales, t:G.rec.tecnologia };
+  if(prev){ cur.da=cur.a-prev.a; cur.dh=cur.h-prev.h; cur.dm=cur.m-prev.m; cur.dt=cur.t-prev.t; }
+  else { cur.da=cur.a; cur.dh=cur.h; cur.dm=cur.m; cur.dt=cur.t; }
+  G.historia.push(cur);
+}
 
 // ===== CUADROS =====
 function makeName(){ const f=FIRST[Math.floor(Math.random()*FIRST.length)]; const a=LAST[Math.floor(Math.random()*LAST.length)]; const b=LAST[Math.floor(Math.random()*LAST.length)]; return `${f} ${a} ${b}`; }
@@ -437,6 +543,7 @@ function recruitCandidate(id){
   if(G.sp < c.cost){ log('No hay suficientes Puntos de Solidaridad.', 'bad'); return; }
   G.sp -= c.cost; c.status='disponible'; G.leaders.push(c);
   G.candidates = G.candidates.filter(x=>x.id!==id);
+  registrarDiario('cuadro', `Reclutó a ${c.name} (${LEADER_TYPES[c.type].label}).`);
   log(`🤝 Reclutado/a: <b>${c.name}</b> (${LEADER_TYPES[c.type].label}).`, 'good'); render();
 }
 function deployLeader(id){
@@ -447,6 +554,7 @@ function deployLeader(id){
   if(G.leaders.some(l=>l.status==='desplegado' && l.district===d.id)){ log(`Ya hay un cuadro en ${d.name}.`, 'bad'); return; }
   if(G.sp < 1){ log('Se necesita 1 PS para el despliegue.', 'bad'); return; }
   G.sp -= 1; L.status='desplegado'; L.district=d.id;
+  registrarDiario('cuadro', `Envió a ${L.name} a gestionar ${d.name}.`);
   log(`📍 <b>${L.name}</b> asume la gestión de <b>${d.name}</b>.`, 'good'); render();
 }
 function recallLeader(id){
@@ -469,15 +577,16 @@ function expireCandidates(){
   if(G.candidates.length < before) log('Algunas figuras en espera se alejaron o fueron silenciadas.', 'state');
 }
 function leaderRiskPhase(){
-  const elimBase = 0.012 + G.state * 0.0006;
-  const arrestBase = 0.05 + G.state * 0.0012;
+  const elimBase = (0.012 + G.state * 0.0006) * DIFF.repMod;
+  const arrestBase = (0.05 + G.state * 0.0012) * DIFF.repMod;
   G.leaders.filter(L=>L.status==='desplegado').forEach(L=>{
     const d = DISTRICTS.find(x=>x.id===L.district);
     const rm = L.riskMod || 1;
     const r = Math.random();
     if(r < elimBase*rm){ L.status='eliminado'; L.district=null; eliminationQueue.push({L, where:d?d.name:'el territorio'}); }
     else if(r < elimBase*rm + arrestBase*rm){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2);
-      log(`🚨 <b>${L.name}</b> fue arrestado/a en ${d.name}. Preso/a político/a.`, 'bad'); }
+      registrarDiario('represión', `${L.name} fue arrestado/a en ${d?d.name:''}. Preso/a político/a.`);
+      log(`🚨 <b>${L.name}</b> fue arrestado/a en ${d?d.name:''}. Preso/a político/a.`, 'bad'); }
   });
   if(eliminationQueue.length) showNextElimination();
 }
@@ -510,7 +619,7 @@ function showDecision(title, html, options){
     const b=document.createElement('button');
     b.textContent = opt.label;
     if(opt.secondary) b.style.background='#444';
-    b.onclick = ()=>{ bg.classList.add('hidden'); opt.fn(); };
+    b.onclick = ()=>{ bg.classList.add('hidden'); registrarDiario('decisión', `${title} → eligió "${opt.label}"`); opt.fn(); };
     c.appendChild(b);
   });
   bg.classList.remove('hidden');
@@ -528,42 +637,121 @@ function applyLeaderPassives(){
   });
 }
 
-// ===== ECONOMÍA SOLIDARIA =====
-function aporteComunidad(d){
-  if(d.hostile || d.org < 20) return 0;
-  const base = d.type==='producción' ? 2 : 1;
-  const orgPart = Math.max(1, Math.floor(d.org/35)) * base;
-  const projectPart = (d.projects||0);
-  const coopPart = d.cooperative ? 3 : 0;
-  return orgPart + projectPart + coopPart;
+// ===== ECONOMÍA SOLIDARIA (4 recursos) =====
+function recursoDe(d){
+  switch(d.id){
+    case 'barrio': case 'mercado': case 'resguardo': case 'comuna': return '🍞 Alimentos';
+    case 'maquila': return '🔧 Herramientas';
+    case 'mina': return '🧱 Materiales';
+    case 'puerto': return '💻 Tecnología';
+    case 'univ': return '💻 Tecnología';
+  }
+  return '';
 }
-function generarRecursos(){
-  let gen = 0;
+function aporteRecursos(d){
+  if(d.hostile || d.org < 20) return {alimentos:0, herramientas:0, materiales:0, tecnologia:0};
+  if(d.ruta==='bloqueada') return {alimentos:0, herramientas:0, materiales:0, tecnologia:0};
+  const units = Math.max(1, Math.floor(d.org/35));
+  const projectBonus = (d.projects||0);
+  const coopBonus = d.cooperative ? 1 : 0;
+  let r = {alimentos:0, herramientas:0, materiales:0, tecnologia:0};
+  switch(d.id){
+    case 'barrio': case 'mercado': case 'resguardo': case 'comuna':
+      r.alimentos = units + projectBonus + coopBonus; break;
+    case 'maquila': r.herramientas = units + projectBonus + coopBonus; r.materiales = Math.floor(units/2); break;
+    case 'mina': r.materiales = units + projectBonus + coopBonus; break;
+    case 'puerto': r.tecnologia = units + projectBonus + coopBonus; r.herramientas = Math.floor(units/2); break;
+    case 'univ': r.tecnologia = units + projectBonus + coopBonus; break;
+  }
+  return r;
+}
+function generarTodosRecursos(){
+  let total = {alimentos:0, herramientas:0, materiales:0, tecnologia:0};
   DISTRICTS.forEach(d=>{
-    let a = aporteComunidad(d);
-    if(hasCond('corteEnergia') && d.type==='producción') a = Math.max(0, a-1);
-    gen += a;
+    let a = aporteRecursos(d);
+    if(hasCond('corteEnergia') && d.type==='producción'){
+      a.herramientas=Math.max(0,a.herramientas-1); a.tecnologia=Math.max(0,a.tecnologia-1); a.materiales=Math.max(0,a.materiales-1);
+    }
+    if(hasCond('sequia') && ['barrio','mercado','resguardo','comuna'].includes(d.id)){
+      a.alimentos=Math.max(0,a.alimentos-1);
+    }
+    total.alimentos+=a.alimentos; total.herramientas+=a.herramientas; total.materiales+=a.materiales; total.tecnologia+=a.tecnologia;
   });
-  if(hasCond('inflacion')) gen = Math.floor(gen * 0.6);
-  if(hasCond('bonanza')) gen = Math.floor(gen * 1.4);
-  if(hasCond('solidaridad')) gen = Math.floor(gen * 1.2);
-  return Math.min(25, gen);
+  const f = (v,m)=>Math.floor(v*m);
+  if(hasCond('inflacion')){ total={alimentos:f(total.alimentos,0.6),herramientas:f(total.herramientas,0.6),materiales:f(total.materiales,0.6),tecnologia:f(total.tecnologia,0.6)}; }
+  if(hasCond('bonanza')) total.alimentos=f(total.alimentos,1.4);
+  if(hasCond('solidaridad')){ total={alimentos:f(total.alimentos,1.2),herramientas:f(total.herramientas,1.2),materiales:f(total.materiales,1.2),tecnologia:f(total.tecnologia,1.2)}; }
+  return total;
 }
 function costoSostenimiento(){
   const desplegados = G.leaders.filter(L=>L.status==='desplegado').length;
   const asambleas = DISTRICTS.filter(d=>d.council).length;
-  return desplegados + asambleas;
+  return { alimentos: desplegados + asambleas };
 }
 function aplicarEconomia(){
-  const gen = generarRecursos();
+  const gen = generarTodosRecursos();
   const up = costoSostenimiento();
-  const prev = G.recursos;
-  G.recursos = Math.max(0, G.recursos + gen - up);
-  if(G.recursos === 0){
+  const prevAlim = G.rec.alimentos;
+  G.rec.alimentos = Math.max(0, G.rec.alimentos + gen.alimentos - (up.alimentos||0));
+  G.rec.herramientas = Math.max(0, G.rec.herramientas + gen.herramientas);
+  G.rec.materiales = Math.max(0, G.rec.materiales + gen.materiales);
+  G.rec.tecnologia = Math.max(0, G.rec.tecnologia + gen.tecnologia);
+  if(G.rec.alimentos === 0){
     G.mom = Math.max(0, G.mom - 2);
-    if(prev > 0) log('⚠️ El Fondo Común se agotó. Sin base material, el impulso decae y la organización se desgasta más rápido.', 'bad');
-    emitQuote('economia', 0.3);
+    if(prevAlim > 0) log('⚠️ No hay alimentos en el Fondo Común. Sin pan, el impulso decae y la organización se desgasta.', 'bad');
   }
+}
+function puedePagar(costo){
+  if(!costo) return true;
+  return (G.rec.alimentos>=(costo.alimentos||0)) && (G.rec.herramientas>=(costo.herramientas||0)) && (G.rec.materiales>=(costo.materiales||0)) && (G.rec.tecnologia>=(costo.tecnologia||0));
+}
+function pagar(costo){
+  if(!costo) return;
+  G.rec.alimentos-=(costo.alimentos||0); G.rec.herramientas-=(costo.herramientas||0); G.rec.materiales-=(costo.materiales||0); G.rec.tecnologia-=(costo.tecnologia||0);
+}
+function sumarRec(r){
+  G.rec.alimentos=Math.max(0,G.rec.alimentos+(r.alimentos||0)); G.rec.herramientas=Math.max(0,G.rec.herramientas+(r.herramientas||0));
+  G.rec.materiales=Math.max(0,G.rec.materiales+(r.materiales||0)); G.rec.tecnologia=Math.max(0,G.rec.tecnologia+(r.tecnologia||0));
+}
+function costoLabel(costo){
+  if(!costo) return '';
+  const p=[];
+  if(costo.alimentos)p.push(costo.alimentos+' 🍞'); if(costo.herramientas)p.push(costo.herramientas+' 🔧');
+  if(costo.materiales)p.push(costo.materiales+' 🧱'); if(costo.tecnologia)p.push(costo.tecnologia+' 💻');
+  return p.join(' ');
+}
+
+// ===== MERCADO POPULAR =====
+function intercambiar(){
+  const origen = document.getElementById('merc-origen').value;
+  const destino = document.getElementById('merc-destino').value;
+  if(origen===destino){ log('Elige dos recursos distintos para intercambiar.', 'bad'); return; }
+  if(G.rec[origen]<2){ log(`Necesitas 2 de ${REC_NAMES[origen]} para intercambiar.`, 'bad'); return; }
+  G.rec[origen]-=2; G.rec[destino]+=1;
+  registrarDiario('mercado', `Intercambió 2 ${REC_NAMES[origen]} → 1 ${REC_NAMES[destino]}.`);
+  log(`🪙 Mercado popular: 2 ${REC_NAMES[origen]} → 1 ${REC_NAMES[destino]}.`, 'good');
+  render();
+}
+
+// ===== RUTAS DE ABASTECIMIENTO =====
+function bloquearRuta(){
+  const producers = DISTRICTS.filter(d=>!d.hostile && d.ruta==='abierta' && d.org>=20);
+  if(!producers.length) return false;
+  const d = pick(producers);
+  d.ruta='bloqueada';
+  registrarDiario('rutas', `El régimen bloqueó la ruta de abastecimiento de ${d.name}.`);
+  regimeAction('inteligencia','Bloqueo de ruta',`El régimen bloquea la ruta de abastecimiento de ${d.name}. Su producción no llega al Fondo Común hasta reabrirla.`, 'bad');
+  return true;
+}
+function reabrirRuta(id){
+  const d = DISTRICTS.find(x=>x.id===id);
+  if(!d || d.ruta!=='bloqueada') return;
+  if(G.sp<1 || G.rec.materiales<1){ log('Reabrir una ruta cuesta 1 PS y 1 🧱 Material.', 'bad'); return; }
+  G.sp--; pagar({materiales:1});
+  d.ruta='abierta';
+  registrarDiario('rutas', `Reabrió la ruta de abastecimiento de ${d.name}.`);
+  log(`🔓 Se reabre la ruta de abastecimiento de <b>${d.name}</b>. El flujo de ${recursoDe(d)} se restablece.`, 'good');
+  render();
 }
 
 // ===== EL RÉGIMEN =====
@@ -572,6 +760,7 @@ function regimeAction(minKey, label, detail, cls){
   G.regime.lastMeasure = label;
   G.regime.lastDetail = detail;
   G.regime.lastMinister = `${m.icon} ${m.title}`;
+  registrarDiario('régimen', `${label} (${m.title}).`);
   log(`🏛️ <b>${label}</b> <span style="color:#b08cc8;font-size:0.9em;">— ${m.icon} ${m.title}</span><br>${detail}`, cls||'state');
 }
 function strongestDistrict(){ return DISTRICTS.filter(d=>!d.hostile && d.org>15).sort((a,b)=>b.org-a.org)[0]; }
@@ -581,7 +770,7 @@ function deployedLeader(){ const t=G.leaders.filter(L=>L.status==='desplegado');
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 function applyRepression(d, orgLoss, label, minKey){
-  d.org = Math.max(0, d.org - orgLoss);
+  d.org = Math.max(0, d.org - Math.round(orgLoss * DIFF.repMod));
   if(G.consc >= 42){
     G.consc=Math.min(100,G.consc+5); G.mom=Math.min(100,G.mom+5); G.regime.capital=Math.max(0,G.regime.capital-10);
     regimeAction(minKey||'interior', label, `La represión se vuelve boomerang: la primera línea protege, los cacerolazos responden, el mundo mira.`, 'event');
@@ -665,6 +854,7 @@ function regimeFase4(){
     ()=>{ const L=deployedLeader()||activeLeader(); if(L){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2); regimeAction('interior','Judicialización (lawfare)',`Capturaron a ${L.name} por "sedición". Preso/a político/a.`, 'bad'); } else { const d=strongestDistrict(); if(d) applyRepression(d, 14, `Operativo represivo contra ${d.name}.`, 'interior'); } },
     ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-8); regimeAction('inteligencia','Infiltración',`Infiltrados siembran desconfianza en ${d.name}.`, 'bad'); } },
     ()=>{ G.consc=Math.max(0,G.consc-3); regimeAction('inteligencia','Estigmatización','Montajes y datos filtrados contra los líderes.', 'bad'); },
+    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d) applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
@@ -674,6 +864,7 @@ function regimeFase5(){
     ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile && d.org>10) d.org=Math.max(0,d.org-6); }); G.regime.militarizado=2; repressionBackfireOnly('Militariza la ciudad: tanques en las calles.', 'interior'); },
     ()=>{ G.regime.internet=2; G.consc=Math.max(0,G.consc-4); repressionBackfireOnly('Corta el internet durante las protestas.', 'inteligencia'); },
     ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.max(0,d.org-8); }); G.mom=Math.max(0,G.mom-5); repressionBackfireOnly('Decreta estado de sitio.', 'interior'); },
+    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d) applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
@@ -697,42 +888,41 @@ function applyRegimePersistent(){
 }
 
 // ===== EVENTOS PASIVOS =====
-function evSolidaridad(){ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.min(100,d.org+2); }); G.recursos=Math.min(30,G.recursos+3);
-  log('🤝 Los movimientos hermanos mandan un fondo de solidaridad.', 'good'); emitQuote('internacionalismo',0.5); }
-function evIniciativa(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>25); if(t.length){ const d=pick(t); d.org=Math.min(100,d.org+6); log(`⚡ Iniciativa desde abajo en <b>${d.name}</b>.`, 'good'); } else evTranquila(); }
-function evMural(){ G.consc=Math.min(100,G.consc+3); log('🎨 Los muros amanecen pintados: murales y arte callejero cuentan la verdad.', 'good'); emitQuote('cultura',0.6); }
-function evMusica(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+4); log('🎶 Una canción de protesta recorre los barrios.', 'event'); emitQuote('cultura',0.5); }
-function evFeminista(){ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); log('💜 <b>Marea feminista.</b> "Si nosotras paramos, el mundo se detiene."', 'event'); emitQuote('feminismo',0.6); }
-function evTerritorio(){ G.consc=Math.min(100,G.consc+4); DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+4); }); log('🏔️ Comunidades bloquean la vía contra el extractivismo.', 'event'); emitQuote('territorio',0.6); }
-function evUniversidad(){ const u=DISTRICTS.find(d=>d.id==='univ'); if(u){ u.org=Math.min(100,u.org+6); G.consc=Math.min(100,G.consc+3); log('🎓 Toma pacífica de la universidad pública.', 'good'); } else evTranquila(); }
-function evHuelgaHambre(){ const presos=G.leaders.filter(L=>L.status==='preso'); if(presos.length){ G.consc=Math.min(100,G.consc+5); if(Math.random()<0.35){ const L=pick(presos); L.status='disponible'; log(`🕯️ Huelga de hambre: <b>${L.name}</b> es liberado/a.`, 'good'); } else { log('🕯️ Los presos inician huelga de hambre. La indignación crece.', 'event'); } emitQuote('martir',0.4); } else evTranquila(); }
-function evDenuncia(){ G.regime.capital=Math.max(0,G.regime.capital-5); G.consc=Math.min(100,G.consc+3); log('📝 Un periodista crítico expone los negocios del régimen.', 'good'); emitQuote('medios',0.5); }
-function evEscandalo(){ G.regime.capital=Math.max(0,G.regime.capital-7); G.consc=Math.min(100,G.consc+3); G.mom=Math.min(100,G.mom+3); log('💸 <b>Escándalo de corrupción</b> expone al régimen.', 'event'); emitQuote('escandalo',0.5); }
-function evPresionInt(){ G.regime.capital=Math.max(0,G.regime.capital-4); G.state=Math.max(0,G.state-4); log('🌍 Organismos internacionales condenan la represión.', 'good'); emitQuote('internacionalismo',0.4); }
-function evMigrantes(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){ m.org=Math.min(100,m.org+5); G.consc=Math.min(100,G.consc+2); log('🧳 Los trabajadores migrantes se organizan.', 'good'); emitQuote('internacionalismo',0.4); } else evTranquila(); }
-function evOllas(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+4); }); log('🍲 Las ollas comunes se multiplican.', 'good'); emitQuote('fe',0.4); }
-function evMingaAgua(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+5); }); G.consc=Math.min(100,G.consc+3); log('🌽 <b>Minga por el agua.</b>', 'event'); emitQuote('territorio',0.5); }
-function evCabildo(){ G.mom=Math.min(100,G.mom+5); DISTRICTS.forEach(d=>{ if(!d.hostile&&(d.type==='comunidad'||d.type==='intelectual')) d.org=Math.min(100,d.org+2); }); log('🗣️ Cabildo abierto en la plaza.', 'good'); emitQuote('unidad',0.5); }
-function evAjuste(){ G.consc=Math.min(100,G.consc+6); G.mom=Math.max(0,G.mom-2); G.regime.capital=Math.max(0,G.regime.capital-4); log('💥 <b>AJUSTE DEL FMI.</b> Devaluación, tarifazo, despidos.', 'event'); emitQuote('crisis',0.6); }
-function evCriminalizacion(){ if(G.consc<50){ G.mom=Math.max(0,G.mom-4); log('⚠️ Los medios criminalizan la protesta.', 'bad'); emitQuote('medios',0.4); } else { G.consc=Math.min(100,G.consc+3); log('La criminalización FRACASA.', 'good'); } }
-function evInfiltracion(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>20); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-8); log(`🕵️ Un infiltrado siembra desconfianza en <b>${d.name}</b>.`, 'bad'); } else evTranquila(); }
-function evFatiga(){ G.mom=Math.max(0,G.mom-4); log('😮‍💨 El desgaste pasa factura. El impulso decae.', 'bad'); }
-function evDivision(){ G.mom=Math.max(0,G.mom-3); const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-5); log(`⚠️ Discusiones internas dividen a <b>${d.name}</b>.`, 'bad'); } else { log('⚠️ Surgen diferencias internas.', 'bad'); } }
-function evRepresionFocal(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15).sort((a,b)=>b.org-a.org); if(t.length){ const d=t[0]; d.org=Math.max(0,d.org-10); log(`🚨 Operativo focalizado contra <b>${d.name}</b>.`, 'bad'); } else evTranquila(); }
-// NUEVOS: naturales / materiales / económicos
-function evSequia(){ setCond('sequia', 4); }
-function evEpidemiaPas(){ setCond('epidemia', 4); }
-function evInflacionPas(){ setCond('inflacion', 5); }
-function evCorteEnergia(){ setCond('corteEnergia', 3); }
-function evBonanza(){ setCond('bonanza', 4); }
-function evOlaSolidaridad(){ setCond('solidaridad', 4); G.recursos=Math.min(30,G.recursos+4); }
-function evPrecioExport(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='producción') d.org=Math.max(0,d.org-5); }); log('📉 El precio internacional de las exportaciones cae. Los distritos de producción sufren despidos.', 'bad'); }
-function evQuiebra(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.type==='producción'); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-4); log(`🏚️ Una empresa quiebra en ${d.name}. Trabajadores a la calle — también una oportunidad de organizarlos.`, 'state'); } }
-function evCierreUniv(){ const u=DISTRICTS.find(d=>d.id==='univ'); if(u){ u.org=Math.max(0,u.org-8); log('🎓 El régimen cierra temporalmente la universidad pública. Los estudiantes resisten.', 'bad'); } }
-function evTrueque(){ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+2);}); G.recursos=Math.min(30,G.recursos+2); log('🔄 Redes de trueque e intercambio florecen en los barrios.', 'good'); emitQuote('economia',0.4); }
-function evRadioPirata(){ G.consc=Math.min(100,G.consc+3); log('📡 Una radio pirata rompe el cerco y multiplica la voz del movimiento.', 'good'); emitQuote('medios',0.4); }
-function evMigracionCampo(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){m.org=Math.min(100,m.org+4);} log('🌾 Familias del campo llegan a la ciudad y se suman al tejido popular.', 'state'); }
-function evMemoria(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+2); log('🕯️ Un aniversario de una lucha histórica moviliza la memoria colectiva.', 'good'); emitQuote('martir',0.3); }
+function evSolidaridad(){ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.min(100,d.org+2); }); sumarRec({alimentos:2,materiales:1}); registrarDiario('evento','Solidaridad regional: llegan recursos.'); log('🤝 Los movimientos hermanos mandan un fondo de solidaridad.', 'good'); emitQuote('internacionalismo',0.5); }
+function evIniciativa(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>25); if(t.length){ const d=pick(t); d.org=Math.min(100,d.org+6); registrarDiario('evento',`Iniciativa desde abajo en ${d.name}.`); log(`⚡ Iniciativa desde abajo en <b>${d.name}</b>.`, 'good'); } else evTranquila(); }
+function evMural(){ G.consc=Math.min(100,G.consc+3); registrarDiario('evento','Murales y arte callejero.'); log('🎨 Los muros amanecen pintados: murales y arte callejero cuentan la verdad.', 'good'); emitQuote('cultura',0.6); }
+function evMusica(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+4); registrarDiario('evento','Canción de protesta.'); log('🎶 Una canción de protesta recorre los barrios.', 'event'); emitQuote('cultura',0.5); }
+function evFeminista(){ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); registrarDiario('evento','Marea feminista.'); log('💜 <b>Marea feminista.</b> "Si nosotras paramos, el mundo se detiene."', 'event'); emitQuote('feminismo',0.6); }
+function evTerritorio(){ G.consc=Math.min(100,G.consc+4); DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+4); }); registrarDiario('evento','Bloqueo contra el extractivismo.'); log('🏔️ Comunidades bloquean la vía contra el extractivismo.', 'event'); emitQuote('territorio',0.6); }
+function evUniversidad(){ const u=DISTRICTS.find(d=>d.id==='univ'); if(u){ u.org=Math.min(100,u.org+6); G.consc=Math.min(100,G.consc+3); registrarDiario('evento','Toma de la universidad.'); log('🎓 Toma pacífica de la universidad pública.', 'good'); } else evTranquila(); }
+function evHuelgaHambre(){ const presos=G.leaders.filter(L=>L.status==='preso'); if(presos.length){ G.consc=Math.min(100,G.consc+5); if(Math.random()<0.35){ const L=pick(presos); L.status='disponible'; registrarDiario('evento',`Huelga de hambre libera a ${L.name}.`); log(`🕯️ Huelga de hambre: <b>${L.name}</b> es liberado/a.`, 'good'); } else { registrarDiario('evento','Huelga de hambre de los presos.'); log('🕯️ Los presos inician huelga de hambre. La indignación crece.', 'event'); } emitQuote('martir',0.4); } else evTranquila(); }
+function evDenuncia(){ G.regime.capital=Math.max(0,G.regime.capital-5); G.consc=Math.min(100,G.consc+3); registrarDiario('evento','Denuncia periodística.'); log('📝 Un periodista crítico expone los negocios del régimen.', 'good'); emitQuote('medios',0.5); }
+function evEscandalo(){ G.regime.capital=Math.max(0,G.regime.capital-7); G.consc=Math.min(100,G.consc+3); G.mom=Math.min(100,G.mom+3); registrarDiario('evento','Escándalo de corrupción.'); log('💸 <b>Escándalo de corrupción</b> expone al régimen.', 'event'); emitQuote('escandalo',0.5); }
+function evPresionInt(){ G.regime.capital=Math.max(0,G.regime.capital-4); G.state=Math.max(0,G.state-4); registrarDiario('evento','Presión internacional.'); log('🌍 Organismos internacionales condenan la represión.', 'good'); emitQuote('internacionalismo',0.4); }
+function evMigrantes(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){ m.org=Math.min(100,m.org+5); G.consc=Math.min(100,G.consc+2); registrarDiario('evento','Migrantes se organizan.'); log('🧳 Los trabajadores migrantes se organizan.', 'good'); emitQuote('internacionalismo',0.4); } else evTranquila(); }
+function evOllas(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+4); }); registrarDiario('evento','Ollas comunes se multiplican.'); log('🍲 Las ollas comunes se multiplican.', 'good'); emitQuote('fe',0.4); }
+function evMingaAgua(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='territorio') d.org=Math.min(100,d.org+5); }); G.consc=Math.min(100,G.consc+3); registrarDiario('evento','Minga por el agua.'); log('🌽 <b>Minga por el agua.</b>', 'event'); emitQuote('territorio',0.5); }
+function evCabildo(){ G.mom=Math.min(100,G.mom+5); DISTRICTS.forEach(d=>{ if(!d.hostile&&(d.type==='comunidad'||d.type==='intelectual')) d.org=Math.min(100,d.org+2); }); registrarDiario('evento','Cabildo abierto.'); log('🗣️ Cabildo abierto en la plaza.', 'good'); emitQuote('unidad',0.5); }
+function evAjuste(){ G.consc=Math.min(100,G.consc+6); G.mom=Math.max(0,G.mom-2); G.regime.capital=Math.max(0,G.regime.capital-4); registrarDiario('evento','Ajuste del FMI.'); log('💥 <b>AJUSTE DEL FMI.</b> Devaluación, tarifazo, despidos.', 'event'); emitQuote('crisis',0.6); }
+function evCriminalizacion(){ if(G.consc<50){ G.mom=Math.max(0,G.mom-4); registrarDiario('evento','Criminalización mediática.'); log('⚠️ Los medios criminalizan la protesta.', 'bad'); emitQuote('medios',0.4); } else { G.consc=Math.min(100,G.consc+3); registrarDiario('evento','La criminalización fracasa.'); log('La criminalización FRACASA.', 'good'); } }
+function evInfiltracion(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>20); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-8); registrarDiario('evento',`Infiltrado en ${d.name}.`); log(`🕵️ Un infiltrado siembra desconfianza en <b>${d.name}</b>.`, 'bad'); } else evTranquila(); }
+function evFatiga(){ G.mom=Math.max(0,G.mom-4); registrarDiario('evento','Fatiga del movimiento.'); log('😮‍💨 El desgaste pasa factura. El impulso decae.', 'bad'); }
+function evDivision(){ G.mom=Math.max(0,G.mom-3); const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-5); registrarDiario('evento',`Divisiones en ${d.name}.`); log(`⚠️ Discusiones internas dividen a <b>${d.name}</b>.`, 'bad'); } else { log('⚠️ Surgen diferencias internas.', 'bad'); } }
+function evRepresionFocal(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15).sort((a,b)=>b.org-a.org); if(t.length){ const d=t[0]; d.org=Math.max(0,d.org-10); registrarDiario('evento',`Operativo contra ${d.name}.`); log(`🚨 Operativo focalizado contra <b>${d.name}</b>.`, 'bad'); } else evTranquila(); }
+function evSequia(){ setCond('sequia', 4); registrarDiario('evento','Sequía.'); }
+function evEpidemiaPas(){ setCond('epidemia', 4); registrarDiario('evento','Epidemia.'); }
+function evInflacionPas(){ setCond('inflacion', 5); registrarDiario('evento','Inflación.'); }
+function evCorteEnergia(){ setCond('corteEnergia', 3); registrarDiario('evento','Cortes de energía.'); }
+function evBonanza(){ setCond('bonanza', 4); registrarDiario('evento','Buena cosecha.'); }
+function evOlaSolidaridad(){ setCond('solidaridad', 4); sumarRec({alimentos:2,herramientas:1,materiales:1}); registrarDiario('evento','Ola de solidaridad internacional.'); }
+function evPrecioExport(){ DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='producción') d.org=Math.max(0,d.org-5); }); registrarDiario('evento','Caída del precio de exportación.'); log('📉 El precio internacional de las exportaciones cae. Los distritos de producción sufren despidos.', 'bad'); }
+function evQuiebra(){ const t=DISTRICTS.filter(d=>!d.hostile&&d.type==='producción'); if(t.length){ const d=pick(t); d.org=Math.max(0,d.org-4); registrarDiario('evento',`Quiebra en ${d.name}.`); log(`🏚️ Una empresa quiebra en ${d.name}. Trabajadores a la calle — también una oportunidad de organizarlos.`, 'state'); } }
+function evCierreUniv(){ const u=DISTRICTS.find(d=>d.id==='univ'); if(u){ u.org=Math.max(0,u.org-8); registrarDiario('evento','Cierre de la universidad.'); log('🎓 El régimen cierra temporalmente la universidad pública. Los estudiantes resisten.', 'bad'); } }
+function evTrueque(){ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+2);}); sumarRec({alimentos:2}); registrarDiario('evento','Redes de trueque.'); log('🔄 Redes de trueque e intercambio florecen en los barrios.', 'good'); emitQuote('economia',0.4); }
+function evRadioPirata(){ G.consc=Math.min(100,G.consc+3); sumarRec({tecnologia:1}); registrarDiario('evento','Radio pirata.'); log('📡 Una radio pirata rompe el cerco y multiplica la voz del movimiento.', 'good'); emitQuote('medios',0.4); }
+function evMigracionCampo(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){m.org=Math.min(100,m.org+4);} registrarDiario('evento','Migración del campo.'); log('🌾 Familias del campo llegan a la ciudad y se suman al tejido popular.', 'state'); }
+function evMemoria(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+2); registrarDiario('evento','Memoria histórica.'); log('🕯️ Un aniversario de una lucha histórica moviliza la memoria colectiva.', 'good'); emitQuote('martir',0.3); }
+function evBloqueoRuta(){ if(!bloquearRuta()) evTranquila(); }
 function evTranquila(){ log('🌤️ Jornada tranquila. El movimiento consolida lo construido.', 'state'); }
 
 // ===== EVENTOS DE DECISIÓN =====
@@ -740,9 +930,9 @@ function decCrisisMigratoria(){
   showDecision('Crisis migratoria regional',
     '<p>La economía de un país vecino colapsa y miles de migrantes llegan buscando refugio. El régimen los usa como chivo expiatorio. ¿Qué hace el movimiento?</p>',
     [
-      {label:'🤝 Organizar solidaridad e integración', fn:()=>{
+      {label:'🤝 Organizar solidaridad e integración (🍞−2)', fn:()=>{
         const m=DISTRICTS.find(d=>d.id==='mercado'); if(m) m.org=Math.min(100,m.org+6);
-        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); G.recursos=Math.max(0,G.recursos-2);
+        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); pagar({alimentos:2});
         log('🤝 El movimiento organiza la acogida. "Ningún ser humano es ilegal."', 'good'); emitQuote('internacionalismo',0.7); render();
       }},
       {label:'🏠 Enfocarse solo en lo local', secondary:true, fn:()=>{
@@ -755,10 +945,10 @@ function decDesastre(){
   showDecision('Desastre natural',
     '<p>Una inundación golpea los barrios populares. El Estado brilla por su ausencia. ¿Qué hace el movimiento?</p>',
     [
-      {label:'🍲 Desplegar ollas y brigadas (usa recursos)', fn:()=>{
+      {label:'🍲 Desplegar ollas y brigadas (🍞−2, 🧱−1)', fn:()=>{
         DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+5); });
         G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); G.regime.capital=Math.max(0,G.regime.capital-4);
-        G.recursos=Math.max(0,G.recursos-3);
+        pagar({alimentos:2,materiales:1});
         log('🍲 El movimiento destina recursos a ollas y brigadas. Donde el Estado no llega, llega la solidaridad.', 'good'); emitQuote('fe',0.6); render();
       }},
       {label:'📢 Denunciar la negligencia del régimen', secondary:true, fn:()=>{
@@ -769,13 +959,13 @@ function decDesastre(){
 }
 function decTerremoto(){
   showDecision('Terremoto', '<p>Un terremoto sacude la región. Hay daño y el Estado responde lento. ¿Qué hace el movimiento?</p>', [
-    {label:'🏗️ Brigadas de reconstrucción comunitaria', fn:()=>{ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+4);}); G.mom=Math.min(100,G.mom+4); G.recursos=Math.max(0,G.recursos-3); log('🏗️ El movimiento organiza brigadas de reconstrucción. La comunidad se cuida a sí misma.','good'); emitQuote('fe',0.5); render(); }},
+    {label:'🏗️ Brigadas de reconstrucción comunitaria (🧱−2, 🔧−1)', fn:()=>{ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+4);}); G.mom=Math.min(100,G.mom+4); pagar({materiales:2,herramientas:1}); log('🏗️ El movimiento organiza brigadas de reconstrucción. La comunidad se cuida a sí misma.','good'); emitQuote('fe',0.5); render(); }},
     {label:'📢 Exigir respuesta estatal', secondary:true, fn:()=>{ G.consc=Math.min(100,G.consc+3); G.regime.capital=Math.max(0,G.regime.capital-3); bumpState(3); log('El movimiento exige respuesta estatal y visibiliza la negligencia.','state'); render(); }},
   ]);
 }
 function decEpidemia(){
   showDecision('Crisis sanitaria', '<p>Una epidemia golpea y el sistema de salud colapsa. ¿Qué hace el movimiento?</p>', [
-    {label:'🏥 Brigadas de salud comunitaria (frena la crisis)', fn:()=>{ if(hasCond('epidemia')){ delete G.condiciones['epidemia']; log('🏥 Las brigadas de salud y las ollas enfrentan la epidemia con organización popular.','good'); } DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+3);}); G.consc=Math.min(100,G.consc+3); G.recursos=Math.max(0,G.recursos-3); emitQuote('fe',0.5); render(); }},
+    {label:'🏥 Brigadas de salud comunitaria (🍞−2, 💻−1) — frena la crisis', fn:()=>{ if(hasCond('epidemia')){ delete G.condiciones['epidemia']; log('🏥 Las brigadas de salud y las ollas enfrentan la epidemia con organización popular.','good'); } DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+3);}); G.consc=Math.min(100,G.consc+3); pagar({alimentos:2,tecnologia:1}); emitQuote('fe',0.5); render(); }},
     {label:'📢 Denunciar el abandono estatal', secondary:true, fn:()=>{ G.consc=Math.min(100,G.consc+4); G.regime.capital=Math.max(0,G.regime.capital-3); log('El movimiento denuncia el abandono. La conciencia crece.','good'); render(); }},
   ]);
 }
@@ -793,7 +983,7 @@ function decReformaLaboral(){
 }
 function decCrisisRefugiados(){
   showDecision('Crisis de refugiados', '<p>Un conflicto en la región genera una ola de refugiados. ¿Qué hace el movimiento?</p>', [
-    {label:'🤝 Corredor humanitario popular', fn:()=>{ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); G.recursos=Math.max(0,G.recursos-2); log('🤝 El movimiento organiza un corredor humanitario.','good'); emitQuote('internacionalismo',0.6); render(); }},
+    {label:'🤝 Corredor humanitario popular (🍞−2)', fn:()=>{ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); pagar({alimentos:2}); log('🤝 El movimiento organiza un corredor humanitario.','good'); emitQuote('internacionalismo',0.6); render(); }},
     {label:'🏠 Priorizar a la comunidad local', secondary:true, fn:()=>{ G.consc=Math.max(0,G.consc-2); log('El movimiento prioriza lo local.','state'); render(); }},
   ]);
 }
@@ -837,8 +1027,8 @@ function decHuelgaRegional(){
   showDecision('Huelga en la región',
     '<p>Estalla una huelga general en un país vecino. ¿Qué hace el movimiento?</p>',
     [
-      {label:'🌎 Coordinar solidaridad activa', fn:()=>{
-        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); G.regime.capital=Math.max(0,G.regime.capital-3); G.recursos=Math.max(0,G.recursos-1);
+      {label:'🌎 Coordinar solidaridad activa (🍞−1)', fn:()=>{
+        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); G.regime.capital=Math.max(0,G.regime.capital-3); pagar({alimentos:1});
         log('🌎 El movimiento coordina solidaridad con la huelga vecina.', 'good'); emitQuote('internacionalismo',0.7); render();
       }},
       {label:'🏠 Seguir enfocado en lo propio', secondary:true, fn:()=>{
@@ -850,10 +1040,10 @@ function decEscasez(){
   showDecision('Escasez y desabastecimiento',
     '<p>La escasez golpea los barrios. El régimen culpa "al sabotaje". ¿Qué hace el movimiento?</p>',
     [
-      {label:'🧺 Organizar distribución comunitaria', fn:()=>{
+      {label:'🧺 Organizar distribución comunitaria (🍞−2)', fn:()=>{
         DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+4); });
-        G.consc=Math.min(100,G.consc+3); G.recursos=Math.max(0,G.recursos-2);
-        log('🧺 El movimiento organiza redes de abastecimiento con el Fondo Común.', 'good'); emitQuote('economia',0.5); render();
+        G.consc=Math.min(100,G.consc+3); pagar({alimentos:2});
+        log('🧺 El movimiento organiza redes de abastecimiento.', 'good'); emitQuote('economia',0.5); render();
       }},
       {label:'📢 Explicar las causas del ajuste', secondary:true, fn:()=>{
         G.consc=Math.min(100,G.consc+4); log('El movimiento explica las causas reales de la escasez.', 'good'); emitQuote('crisis',0.5); render();
@@ -876,18 +1066,16 @@ function decRenuncia(){
 }
 
 const EVENTS = [
-  // pasivos existentes
   {w:4, fn:evSolidaridad}, {w:4, fn:evIniciativa}, {w:3, fn:evMural}, {w:3, fn:evMusica},
   {w:3, fn:evFeminista}, {w:3, fn:evTerritorio}, {w:3, fn:evUniversidad}, {w:2, fn:evHuelgaHambre},
   {w:3, fn:evDenuncia}, {w:2, fn:evEscandalo}, {w:2, fn:evPresionInt}, {w:2, fn:evMigrantes},
   {w:3, fn:evOllas}, {w:2, fn:evMingaAgua}, {w:2, fn:evCabildo},
   {w:5, fn:evAjuste}, {w:4, fn:evCriminalizacion}, {w:3, fn:evInfiltracion}, {w:3, fn:evFatiga},
   {w:2, fn:evDivision}, {w:3, fn:evRepresionFocal},
-  // nuevos naturales/materiales/económicos
   {w:3, fn:evSequia}, {w:3, fn:evEpidemiaPas}, {w:3, fn:evInflacionPas}, {w:3, fn:evCorteEnergia},
   {w:3, fn:evBonanza}, {w:3, fn:evOlaSolidaridad}, {w:3, fn:evPrecioExport}, {w:2, fn:evQuiebra},
   {w:2, fn:evCierreUniv}, {w:3, fn:evTrueque}, {w:2, fn:evRadioPirata}, {w:2, fn:evMigracionCampo}, {w:2, fn:evMemoria},
-  // decisiones existentes + nuevas
+  {w:3, fn:evBloqueoRuta},
   {w:3, fn:decCrisisMigratoria}, {w:3, fn:decDesastre}, {w:3, fn:decTerremoto}, {w:3, fn:decEpidemia},
   {w:3, fn:decPrivatizacion}, {w:3, fn:decReformaLaboral}, {w:2, fn:decCrisisRefugiados}, {w:2, fn:decCambioGobiernoVecino},
   {w:2, fn:decDDHH}, {w:3, fn:decNegociacion}, {w:3, fn:decHuelgaRegional}, {w:3, fn:decEscasez}, {w:2, fn:decRenuncia},
@@ -902,17 +1090,19 @@ function eventPhase(){
 // ===== RENDER =====
 function render(){
   document.getElementById('turn').textContent = G.turn;
+  document.getElementById('dif-label').textContent = DIFF.label;
   document.getElementById('sp').textContent = G.sp;
   setBar('consc', G.consc); setBar('mom', G.mom); setBar('state', G.state);
   const readiness = strikeReadiness();
   setBar('strike', readiness); document.getElementById('strike-val').textContent = Math.round(readiness)+'%';
 
-  const gen = generarRecursos();
+  document.getElementById('rec-alimentos').textContent = G.rec.alimentos;
+  document.getElementById('rec-herramientas').textContent = G.rec.herramientas;
+  document.getElementById('rec-materiales').textContent = G.rec.materiales;
+  document.getElementById('rec-tecnologia').textContent = G.rec.tecnologia;
+  const gen = generarTodosRecursos();
   const up = costoSostenimiento();
-  document.getElementById('rm-val').textContent = G.recursos;
-  document.getElementById('rm-bar').style.width = Math.min(100, (G.recursos/30)*100) + '%';
-  const net = gen - up;
-  document.getElementById('rm-flow').innerHTML = `Aporte comunitario: <b>+${gen}</b> · Sostenimiento: <b>−${up}</b> · Neto: <b style="color:${net>=0?'#8fbc7f':'#d97b7f'}">${net>=0?'+':''}${net}</b>`;
+  document.getElementById('rec-flow').innerHTML = `Producción: 🍞+${gen.alimentos} 🔧+${gen.herramientas} 🧱+${gen.materiales} 💻+${gen.tecnologia} · Sostenimiento: 🍞−${up.alimentos||0}`;
 
   const condKeys = Object.keys(G.condiciones);
   document.getElementById('condiciones-activas').innerHTML = condKeys.length
@@ -951,14 +1141,19 @@ function render(){
     el.className = 'district' + (d.hostile?' hostile':'') + (G.selected===d.id?' selected':'') + (d.cooperative?' coop':'');
     const icon = d.hostile ? (d.type==='capital'?'🏦':d.type==='ideología'?'📰':'🏛️') : '';
     const leaderHere = G.leaders.find(L=>L.status==='desplegado' && L.district===d.id);
-    const aporte = aporteComunidad(d);
+    const aporte = aporteRecursos(d);
+    const parts=[];
+    if(aporte.alimentos)parts.push(aporte.alimentos+' 🍞'); if(aporte.herramientas)parts.push(aporte.herramientas+' 🔧');
+    if(aporte.materiales)parts.push(aporte.materiales+' 🧱'); if(aporte.tecnologia)parts.push(aporte.tecnologia+' 💻');
+    const aporteStr = parts.length? parts.join(' ') : '— (org ≥ 20)';
     el.innerHTML = `${d.council?'<span class="flag">🚩</span>':(d.hostile?'<span class="flag">'+icon+'</span>':'')}
       <div class="dname">${d.name}</div><div class="dtype">${d.type} — ${d.pop}</div>
       ${d.hostile
         ? '<div style="font-size:0.68em;color:#8a5a5a;margin-top:4px;">Pilar del viejo orden.</div>'
         : `<div class="mlabel"><span>Organización</span><span>${Math.round(d.org)}</span></div>
            <div class="mini-bar mini-org"><div style="width:${d.org}%"></div></div>
-           <div class="draporte">💰 Aporte: ${aporte>0? '+'+aporte+' RM' : '— (org ≥ 20)'}${d.projects? ' · 🏗️ '+d.projects+'/3':''}</div>
+           <div class="draporte">Aporte: ${aporteStr}${d.projects? ' · 🏗️ '+d.projects+'/3':''}</div>
+           ${d.ruta==='bloqueada'?'<div class="druta">🔴 Ruta de abastecimiento bloqueada</div>':''}
            ${d.cooperative? '<div class="dcoop">🔧 Cooperativa de trabajadores</div>':''}
            ${leaderHere?`<div class="dleader">👤 ${leaderHere.name}</div>`:''}`}`;
     if(!d.hostile) el.onclick = ()=>{ G.selected = d.id; render(); };
@@ -969,13 +1164,18 @@ function render(){
   ACTIONS.forEach(a=>{
     if(a.sec2 && !seccion2Activa()) return;
     const b = document.createElement('button'); b.className='action-btn' + (a.sec2?' sec2':'');
-    const rmNeeded = a.rmCost || 0;
-    b.disabled = G.over || G.sp < a.cost || (rmNeeded && G.recursos < rmNeeded);
-    const costLabel = rmNeeded ? `${a.cost} PS + ${rmNeeded} RM` : `${a.cost} PS`;
-    b.innerHTML = `${a.name} <span class="cost">${costLabel}</span><span class="adesc">${a.desc}</span>`;
+    const recNeeded = a.costoRecursos || null;
+    b.disabled = G.over || G.sp < a.cost || !puedePagar(recNeeded);
+    let costLabel2 = `${a.cost} PS`;
+    if(recNeeded) costLabel2 += ' + ' + costoLabel(recNeeded);
+    b.innerHTML = `${a.name} <span class="cost">${costLabel2}</span><span class="adesc">${a.desc}</span>`;
     b.onclick = ()=>doAction(a); actDiv.appendChild(b);
   });
   renderCuadros();
+  renderMercado();
+  renderRutas();
+  renderDiario();
+  renderHistoria();
 }
 function renderCuadros(){
   const el = document.getElementById('cuadros'); let html='';
@@ -1001,6 +1201,36 @@ function renderCuadros(){
   if(G.martyrs.length){ html += `<div class="cuadro-sub">Mártires populares (${G.martyrs.length})</div><div class="cuadro-empty">${G.martyrs.map(m=>'🕯️ '+m).join('<br>')}</div>`; }
   el.innerHTML = html;
 }
+function renderMercado(){
+  document.getElementById('merc-info').innerHTML = `Disponible: 🍞 ${G.rec.alimentos} · 🔧 ${G.rec.herramientas} · 🧱 ${G.rec.materiales} · 💻 ${G.rec.tecnologia}`;
+}
+function renderRutas(){
+  const el = document.getElementById('rutas');
+  const producers = DISTRICTS.filter(d=>!d.hostile);
+  el.innerHTML = producers.map(d=>{
+    const rec = recursoDe(d);
+    if(!rec) return '';
+    const abierta = d.ruta==='abierta';
+    const cls = abierta? 'ruta-abierta':'ruta-bloqueada';
+    return `<div class="ruta-chip ${cls}" onclick="reabrirRuta('${d.id}')" title="${abierta?'Ruta abierta':'Ruta bloqueada — clic para reabrir (1 PS + 1 🧱)'}">
+      ${abierta?'🟢':'🔴'} ${d.name}<br><small>${rec}</small>
+    </div>`;
+  }).join('');
+}
+function renderDiario(){
+  const el = document.getElementById('diario-lista');
+  const items = G.diario.slice(-60).reverse();
+  el.innerHTML = items.map(e=>`<p><b>J${e.turn}</b> <span class="tipo">[${e.type}]</span> ${e.text}</p>`).join('') || '<p class="cuadro-empty">Aún no hay registros.</p>';
+}
+function renderHistoria(){
+  const el = document.getElementById('historia-tabla');
+  if(!G.historia.length){ el.innerHTML='<p class="cuadro-empty">Aún no hay datos.</p>'; return; }
+  const rows = G.historia.slice(-30).map(h=>{
+    const fmt=(v,d)=>`${v} (${d>=0?'+':''}${d})`;
+    return `<tr><td>${h.turn}</td><td>${fmt(h.a,h.da)}</td><td>${fmt(h.h,h.dh)}</td><td>${fmt(h.m,h.dm)}</td><td>${fmt(h.t,h.dt)}</td></tr>`;
+  }).reverse().join('');
+  el.innerHTML = `<table><thead><tr><th>Jornada</th><th>🍞</th><th>🔧</th><th>🧱</th><th>💻</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
 
 function setBar(name, v){ document.getElementById(name+'-bar').style.width = Math.max(0,Math.min(100,v))+'%'; document.getElementById(name+'-val').textContent = Math.round(v); }
 function strikeReadiness(){
@@ -1013,14 +1243,15 @@ function strikeReadiness(){
 
 function doAction(action){
   if(G.over || G.sp < action.cost) return;
-  if(action.rmCost && G.recursos < action.rmCost){ log(`Faltan recursos materiales (${action.rmCost} RM) para "${action.name}".`, 'bad'); return; }
+  if(!puedePagar(action.costoRecursos)){ log(`Faltan recursos para "${action.name}". Necesitas: ${costoLabel(action.costoRecursos)}. Organiza los sectores que produzcan lo que te falta.`, 'bad'); return; }
   const d = DISTRICTS.find(x=>x.id===G.selected) || DISTRICTS[0];
   const err = action.apply(d);
   if(err){ log(err,'bad'); return; }
   G.sp -= action.cost;
-  if(action.rmCost) G.recursos -= action.rmCost;
+  pagar(action.costoRecursos);
   if(action.id==='genstrike') return;
   G.playerMovesThisTurn.push(action.id);
+  registrarDiario('acción', `${action.name} en ${d.name}.`);
   const leader = G.leaders.find(L=>L.status==='desplegado' && L.district===d.id);
   if(leader && !d.hostile && ['organize','education','mutualaid','strikew','council','cooperative'].includes(action.id)){
     const extra = leader.skill*2; d.org=Math.min(100,d.org+extra);
@@ -1031,10 +1262,10 @@ function doAction(action){
 function bumpState(n){ G.state = Math.min(100, G.state + n); }
 
 function desgasteOrganizacion(){
-  let desgaste = (G.regime.militarizado>0?2:1) + (G.recursos===0?1:0);
+  let desgaste = (G.regime.militarizado>0?2:1) + (G.rec.alimentos===0?1:0);
   if(hasCond('epidemia')) desgaste += 1;
   DISTRICTS.forEach(d=>{
-    if(!d.hostile && d.org>10 && Math.random()<0.4){
+    if(!d.hostile && d.org>10 && Math.random()<DIFF.attrition){
       let dw = desgaste;
       if(hasCond('sequia') && d.type==='territorio') dw += 1;
       d.org=Math.max(0,d.org-dw);
@@ -1051,6 +1282,7 @@ function endTurn(){
   desgasteOrganizacion();
   aplicarEconomia();
   tickCondiciones();
+  snapshotRecursos();
   eventPhase();
   maybeSpawnCandidate();
   expireCandidates();
@@ -1059,7 +1291,7 @@ function endTurn(){
   const orgSum = DISTRICTS.filter(d=>!d.hostile).reduce((s,d)=>s+d.org,0);
   G.sp = Math.min(12, 2 + Math.floor(orgSum/40));
   G.mom = Math.max(0, G.mom - 2);
-  if(G.consc > 8 && Math.random() < 0.5) G.consc = Math.max(0, G.consc - 1);
+  if(G.consc > 8 && Math.random() < DIFF.conscDecay) G.consc = Math.max(0, G.consc - 1);
   checkDefeat();
   render();
 }
@@ -1067,6 +1299,7 @@ function endTurn(){
 function attemptGeneralStrike(){
   const readiness = strikeReadiness();
   const councils = DISTRICTS.filter(d=>d.council).length;
+  registrarDiario('paro', `Convocó el Paro General con ${Math.round(readiness)}% de preparación.`);
   log(`⚑ SE CONVOCA AL PARO GENERAL. Preparación: ${Math.round(readiness)}%, Asambleas: ${councils}, Conciencia: ${Math.round(G.consc)}.`, 'event');
   if(readiness>=90 && councils>=3 && G.consc>=60){
     G.over = true;
@@ -1077,7 +1310,7 @@ function attemptGeneralStrike(){
       <p>Las cooperativas producen, el medio comunitario informa, las asambleas y el Frente Popular coordinan la vida. La producción y la palabra vuelven a manos del pueblo, por vía democrática.</p>
       ${G.martyrs.length ? `<p>Los mártires son nombrados uno a uno: <b>${G.martyrs.join(', ')}</b>. No murieron: se sembraron.</p>` : ''}
       <blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>
-      <p><b>Completado en ${G.turn} jornadas.</b></p>`;
+      <p><b>Completado en ${G.turn} jornadas · Dificultad: ${DIFF.label}.</b></p>`;
     document.getElementById('endscreen').classList.remove('hidden');
   } else {
     let faltan=[];
@@ -1100,7 +1333,7 @@ function checkDefeat(){
       <p>El régimen respira. Sus medios decretan que nada cambió.</p>
       <p>Pero la historia de América Latina no se cierra tan fácil. Cada movimiento derrotado deja experiencia, cuadros y memoria.</p>
       <blockquote>"La utopía está en el horizonte: sirve para caminar." — Eduardo Galeano</blockquote>
-      <p><b>Estudiar la derrota. Volver a empezar.</b></p>`;
+      <p><b>Estudiar la derrota. Volver a empezar.</b> · Dificultad: ${DIFF.label}</p>`;
     document.getElementById('endscreen').classList.remove('hidden');
   }
 }
