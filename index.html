@@ -72,6 +72,7 @@
   .lskill { color:var(--gold); font-size:0.85em; }
   .mini-btn { background:var(--red); color:#fff; border:none; border-radius:3px; padding:4px 9px; font-size:0.78em; cursor:pointer; white-space:nowrap; font-family:inherit; }
   .mini-btn:hover { background:#e0343b; }
+  .mini-btn:disabled { opacity:0.4; cursor:not-allowed; }
   #regimen-last { font-size:0.75em; background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:6px; color:var(--dim); }
   #regimen-last b { color:var(--text); }
   #regimen-last .min { color:#b08cc8; }
@@ -87,9 +88,10 @@
   .mem-item b { color:var(--text); }
   .mem-item:last-child { border-bottom:none; }
   #sec2-status { font-size:0.8em; }
-  /* Mercado / rutas / diario */
   select { background:var(--panel2); color:var(--text); border:1px solid #3a342e; border-radius:4px; padding:4px; font-family:inherit; font-size:0.8em; }
   .mercado-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  #merc-tasa { font-size:0.74em; color:var(--gold); margin-bottom:4px; }
+  .merc-nivel-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
   .rutas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
   .ruta-chip { background:var(--panel2); border-radius:5px; padding:8px; font-size:0.72em; cursor:pointer; border:1px solid #3a342e; text-align:center; }
   .ruta-chip small { color:var(--dim); }
@@ -99,12 +101,14 @@
   .diario p { border-bottom:1px dotted #2a2622; padding:3px 0; }
   .diario b { color:var(--gold); }
   .diario .tipo { color:var(--blue); font-size:0.85em; }
-  #historia-tabla { max-height:230px; overflow-y:auto; }
-  #historia-tabla table { width:100%; border-collapse:collapse; font-size:0.78em; }
-  #historia-tabla th, #historia-tabla td { border:1px solid #3a342e; padding:3px 6px; text-align:center; }
-  #historia-tabla th { color:var(--gold); }
+  .grafica-leyenda { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:0.8em; }
+  .tv-caption { font-size:0.8em; color:var(--gold); background:#0d0b0a; border:1px solid #3a342e; border-radius:4px; padding:8px; margin-top:10px; text-align:left; font-family:'Courier New', monospace; max-width:360px; margin-left:auto; margin-right:auto; }
+  .canales { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .canal-btn { background:var(--panel2); color:var(--text); border:1px solid #3a342e; border-radius:4px; padding:5px 9px; font-size:0.72em; cursor:pointer; font-family:inherit; }
+  .canal-btn:hover { border-color:var(--gold); }
+  .canal-btn.activo { border-color:var(--gold); background:#332d28; color:var(--gold); }
   .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
-  .modal { background:var(--panel); border:2px solid var(--red); border-radius:8px; max-width:720px; max-height:85vh; overflow-y:auto; padding:28px; }
+  .modal { background:var(--panel); border:2px solid var(--red); border-radius:8px; max-width:720px; max-height:88vh; overflow-y:auto; padding:28px; }
   .modal h2 { color:var(--red); margin-bottom:12px; text-transform:uppercase; }
   .modal h3 { color:var(--gold); margin:14px 0 6px; font-size:1em; }
   .modal p { margin-bottom:10px; font-size:0.95em; }
@@ -168,7 +172,7 @@
     <div class="panel">
       <h2>La Ciudad y el Territorio — Terreno de la Lucha de Clases</h2>
       <div class="districts" id="districts"></div>
-      <p style="font-size:0.75em;color:var(--dim);margin-top:10px;">💡 Cada sector produce un recurso distinto y necesita una ruta de abastecimiento abierta. El régimen puede bloquear rutas: reábrelas abajo.</p>
+      <p style="font-size:0.75em;color:var(--dim);margin-top:10px;">💡 Cada sector produce un recurso y lo envía por una ruta con capacidad limitada. El régimen puede bloquear rutas: gestiona cada una abajo.</p>
     </div>
 
     <div class="panel hidden" id="sec2-panel" style="margin-top:14px; border-color:var(--green);">
@@ -201,39 +205,43 @@
   </div>
 </div>
 
-<!-- SECCIONES NUEVAS: MERCADO + RUTAS -->
+<!-- SECCIONES: MERCADO + RUTAS -->
 <div style="margin-top:14px;">
   <div class="panel">
     <h2>🪙 Mercado Popular · 🛣️ Rutas de Abastecimiento</h2>
     <div class="dos-col">
       <div>
-        <p style="font-size:0.75em;color:var(--dim);margin-bottom:8px;">Intercambia recursos entre comunidades. Tasa: entregas 2 y recibes 1.</p>
+        <div class="merc-nivel-row">
+          <span style="font-size:0.8em;">Nivel del mercado: <b id="merc-nivel" style="color:var(--gold)"></b></span>
+          <button class="mini-btn" id="merc-mejorar" onclick="mejorarMercado()"></button>
+        </div>
         <div class="mercado-row">
-          <select id="merc-origen">
+          <select id="merc-origen" onchange="actualizarTasa()">
             <option value="alimentos">🍞 Alimentos</option>
             <option value="herramientas">🔧 Herramientas</option>
             <option value="materiales">🧱 Materiales</option>
             <option value="tecnologia">💻 Tecnología</option>
           </select>
           <span style="color:var(--dim)">→</span>
-          <select id="merc-destino">
+          <select id="merc-destino" onchange="actualizarTasa()">
             <option value="herramientas">🔧 Herramientas</option>
             <option value="alimentos">🍞 Alimentos</option>
             <option value="materiales">🧱 Materiales</option>
             <option value="tecnologia">💻 Tecnología</option>
           </select>
-          <button class="mini-btn" onclick="intercambiar()">Cambiar (2→1)</button>
+          <button class="mini-btn" onclick="intercambiar()">Intercambiar</button>
         </div>
+        <div id="merc-tasa"></div>
         <div id="merc-info" style="font-size:0.72em;color:var(--dim);"></div>
       </div>
       <div>
-        <p style="font-size:0.75em;color:var(--dim);margin-bottom:8px;">🟢 Ruta abierta · 🔴 Bloqueada por el régimen. Clic en una ruta roja para reabrirla (1 PS + 1 🧱).</p>
+        <p style="font-size:0.75em;color:var(--dim);margin-bottom:8px;">🟢 Abierta · 🔴 Bloqueada. Clic en una ruta para reabrirla o ampliar su capacidad.</p>
         <div class="rutas-grid" id="rutas"></div>
       </div>
     </div>
   </div>
 
-  <!-- DIARIO + ANÁLISIS -->
+  <!-- DIARIO + GRÁFICA LINEAL CON EVENTOS -->
   <div class="panel" style="margin-top:14px;">
     <h2>📔 Diario de la Lucha</h2>
     <div class="dos-col">
@@ -242,10 +250,18 @@
         <div class="diario" id="diario-lista"></div>
       </div>
       <div>
-        <h3 style="font-size:0.85em;color:var(--gold);margin-bottom:6px;">Análisis lineal de recursos por jornada (nivel · variación)</h3>
-        <div id="historia-tabla"></div>
+        <h3 style="font-size:0.85em;color:var(--gold);margin-bottom:6px;">📈 Fluctuación de recursos + eventos clave</h3>
+        <div id="grafica-live"></div>
       </div>
     </div>
+  </div>
+
+  <!-- TV PIXELADA CON CANALES -->
+  <div class="panel" style="margin-top:14px; text-align:center;">
+    <h2>📺 Transmisión Popular — Cambia de canal</h2>
+    <p style="font-size:0.72em;color:var(--dim);margin-bottom:8px;">Sintoniza el espectro mediático: del canal más afín al Estado (1) al más crítico (7).</p>
+    <div class="canales" id="canales"></div>
+    <div id="tv-container" style="margin-top:10px;"></div>
   </div>
 </div>
 
@@ -259,13 +275,15 @@
     <h3>La premisa materialista</h3>
     <p>Toda clase dominante depende del <em>trabajo y la obediencia</em> de quienes explota. Cuando quienes producen retiran su consentimiento, la máquina se detiene.</p>
     <h3>La base material</h3>
-    <p>El Fondo Común tiene <strong>cuatro recursos</strong>, cada uno producido por un sector: 🍞 Alimentos (Barrio, Mercado, Resguardo, Comuna), 🔧 Herramientas (Maquila, Puerto), 🧱 Materiales (Mega-minería, Maquila), 💻 Tecnología (Puerto, Universidad). Cada acción consume recursos específicos. Usa el <strong>Mercado Popular</strong> para intercambiar y vigila las <strong>Rutas de Abastecimiento</strong>: el régimen puede bloquearlas.</p>
+    <p>El Fondo Común tiene <strong>cuatro recursos</strong>, cada uno producido por un sector: 🍞 Alimentos (Barrio, Mercado, Resguardo, Comuna), 🔧 Herramientas (Maquila, Puerto), 🧱 Materiales (Mega-minería, Maquila), 💻 Tecnología (Puerto, Universidad).</p>
+    <h3>Mercado, rutas y medios</h3>
+    <p>Usa el <strong>Mercado Popular</strong> para intercambiar recursos, gestiona las <strong>Rutas de Abastecimiento</strong>, y sintoniza la <strong>TV con 7 canales</strong> que van del más afín al Estado al más crítico, cada uno narrando lo que ocurre a su manera.</p>
     <h3>Un mundo que cambia</h3>
-    <p>Sequías, epidemias, inflación, apagones, crisis internacionales y represión cambiarán las reglas. El <strong>Diario de la Lucha</strong> registra tus decisiones y una tabla analiza tus recursos jornada a jornada.</p>
+    <p>Sequías, epidemias, inflación, apagones, crisis internacionales y represión cambiarán las reglas. El <strong>Diario</strong> registra tus decisiones; una <strong>gráfica lineal</strong> muestra tus recursos con los <strong>eventos clave marcados</strong>.</p>
     <h3>Sección 2 — Consolidar el Poder Popular</h3>
     <p>Con Conciencia ≥ 60% puedes construir la nueva sociedad: cooperativas de trabajadores, un medio comunitario y un Frente Popular amplio.</p>
     <h3>Elige la dificultad</h3>
-    <p>🌱 <b>Suave</b>: régimen débil, más recursos. ⚖️ <b>Normal</b>: la experiencia equilibrada. 🔥 <b>Difícil</b>: régimen fuerte, escasez y más represión.</p>
+    <p>🌱 <b>Suave</b>: régimen débil, más recursos. ⚖️ <b>Normal</b>: equilibrada. 🔥 <b>Difícil</b>: régimen fuerte, escasez y más represión.</p>
     <blockquote>"Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui</blockquote>
     <button onclick="startGame('suave')">🌱 Comenzar — Suave</button>
     <button onclick="startGame('normal')">⚖️ Comenzar — Normal</button>
@@ -275,7 +293,13 @@
 
 <!-- FIN -->
 <div class="modal-bg hidden" id="endscreen">
-  <div class="modal"><h2 id="end-title"></h2><div id="end-text"></div><button onclick="location.reload()">Comenzar una nueva lucha</button></div>
+  <div class="modal">
+    <h2 id="end-title"></h2>
+    <div id="end-text"></div>
+    <h3 style="color:var(--gold);margin-top:16px;">📈 Fluctuación de recursos + eventos durante la sesión</h3>
+    <div id="grafica-final"></div>
+    <button onclick="location.reload()">Comenzar una nueva lucha</button>
+  </div>
 </div>
 
 <!-- DECISIÓN -->
@@ -292,18 +316,123 @@ const DIFFICULTIES = {
 };
 let DIFF = null;
 
+// ===== CANALES DE TV (espectro político) — 45 enunciados por canal =====
+const CANALES = [
+ {n:1, nombre:'Canal Nacional', alineacion:'Voz oficial del Estado', color:'#8a8f98',
+  msgs:{
+   1:['El país vive una etapa de estabilidad y progreso.','Las cifras oficiales confirman el buen rumbo de la economía.','El Gobierno inaugura una nueva obra de infraestructura.','La normalidad reina en todo el territorio nacional.','Los indicadores de confianza alcanzaron su mejor nivel.','El presidente destaca los logros de su gestión.','Nuevas inversiones llegan al país, informa el Ministerio.','La familia nacional avanza unida hacia el futuro.','El orden y la tranquilidad caracterizan la vida cotidiana.'],
+   2:['Grupos aislados alteran el orden; la mayoría trabaja en paz.','Las autoridades llaman a no dejarse llevar por rumores.','El Gobierno garantiza el derecho a la libre circulación.','Se investiga a los responsables de los disturbios.','La población sensata rechaza la violencia de unos pocos.','Las fuerzas del orden actúan con profesionalismo y moderación.','No permitiremos que minorías impongan su voluntad.','El llamado es a la calma y al respeto de la ley.','La institucionalidad está más fuerte que nunca.'],
+   3:['El Gobierno anuncia un histórico paquete de ayuda social.','Se instalarán mesas de diálogo con todos los sectores.','La mano tendida del Ejecutivo busca la concordia nacional.','Nuevos bonos llegarán a las familias más necesitadas.','El presidente escucha y responde a las inquietudes ciudadanas.','La concertación es el camino elegido por el Gobierno.','Se amplían los programas sociales para tender puentes.','La voluntad de diálogo del Ejecutivo es total.','Juntos, gobierno y pueblo, superaremos las diferencias.'],
+   4:['El Estado restablece el orden con el respaldo de la ley.','Los responsables del caos enfrentarán la justicia.','La firmeza institucional protege a la mayoría trabajadora.','Operativos necesarios devuelven la tranquilidad a la ciudadanía.','No habrá impunidad para quienes alteran la paz pública.','El Gobierno actúa con determinación para proteger el país.','La democracia se defiende haciendo cumplir la ley.','Las fuerzas del orden protegen a las familias de bien.','El orden constitucional está plenamente garantizado.'],
+   5:['Estado de excepción: el Gobierno protege la soberanía nacional.','Medidas extraordinarias para tiempos extraordinarios.','La patria exige unidad frente a la amenaza.','Se suspenden temporalmente algunas garantías por la seguridad común.','El Gobierno asume el control total para salvaguardar la nación.','La emergencia nacional requiere el concurso de todos.','El orden y la patria están por encima de todo.','Las Fuerzas Armadas garantizan la estabilidad de la República.','La nación permanece unida bajo la guía del Gobierno.']}},
+
+ {n:2, nombre:'TeleCentro', alineacion:'Privado, afín al gobierno', color:'#a8a29a',
+  msgs:{
+   1:['Los mercados celebran: el riesgo país cae a mínimos históricos.','"El modelo económico funciona", afirman los analistas.','La bolsa alcanza un nuevo récord impulsada por la confianza.','"El esfuerzo individual es la clave del éxito", opina el panel.','Empresarios destacan el clima favorable para invertir.','El consumo crece y las ventas baten récords, según el sector.','"Trabajar duro y confiar en el sistema", el mensaje del día.','La iniciativa privada, motor del desarrollo nacional.','Los números macroeconómicos respaldan la gestión oficial.'],
+   2:['Preocupación en el empresariado por los desórdenes callejeros.','"La protesta no puede paralizar la economía", advierte la Cámara.','Analistas piden moderación y respeto a la propiedad privada.','Los comerciantes reportan pérdidas por las manifestaciones.','"Volver a la normalidad es urgente", coinciden los expertos.','La incertidumbre afecta la inversión, alerta el sector financiero.','El panel debate: ¿hasta dónde llega el derecho a protestar?','Gremios económicos llaman al diálogo y la sensatez.','"El orden es la base del progreso", editorial de la casa.'],
+   3:['Los bonos oficiales, ¿una medida acertada? Opinan los expertos.','"El diálogo es el camino", celebra el sector empresarial.','Se espera que las concesiones devuelvan la confianza.','Los mercados reaccionan con optimismo ante el anuncio oficial.','"Acompañamos la voluntad de concordia", dice la Cámara.','El panel analiza el costo fiscal de las nuevas ayudas.','La moderación se impone, celebran los analistas.','Se abre una ventana de estabilidad, según los expertos.','"Apostamos por la concertación", comunicado del gremio.'],
+   4:['"Había que poner orden", sostiene el conductor.','Los operativos, un mal necesario según analistas afines.','La inversión exige estabilidad, recuerda el panel económico.','"La firmeza era inevitable", opina la mesa.','El sector privado respalda las medidas de control.','"Primero el orden, después el debate", editorial.','La seguridad jurídica depende del control, afirman.','Los comerciantes agradecen el restablecimiento del orden.','"Celebramos la decisión oficial", comunicado.'],
+   5:['"La mano dura era inevitable", opina la mesa.','Cobertura especial del despliegue de seguridad.','"Primero el orden, después los derechos", editorial.','El sector económico pide respaldar las medidas excepcionales.','La estabilidad requiere decisiones firmes, afirman.','Los analistas justifican la suspensión de garantías.','"Es hora de unidad en torno al Gobierno", opina el panel.','La emergencia exige cerrar filas, según los expertos.','El canal acompaña las medidas de excepción.']}},
+
+ {n:3, nombre:'NotiExpress', alineacion:'Independiente moderado', color:'#c9b45a',
+  msgs:{
+   1:['Economía estable, pero persisten las brechas sociales.','¿Crecimiento para quién? Debate en nuestro panel.','Informe especial: el costo de vida en los barrios populares.','Las cifras oficiales y la realidad de la calle.','¿Qué pasa con los servicios públicos? Investigación.','El empleo informal crece: radiografía del trabajo.','Expertos debaten el rumbo económico del país.','La desigualdad, el tema pendiente de la agenda.','Investigamos: ¿quién se beneficia del modelo?'],
+   2:['Crece el malestar social: crónica desde las calles.','¿Qué piden quienes protestan? Lo investigamos.','Voces a favor y en contra: el país se pregunta.','Testimonios de ambos lados de la barricada.','¿Qué hay detrás de las manifestaciones? Análisis.','El descontento tiene historia: contexto de las protestas.','¿Se puede evitar la escalada? Opiniones encontradas.','La calle habla: registro de las demandas ciudadanas.','¿Reforma o ruptura? El dilema nacional.'],
+   3:['Los bonos, ¿alivio real o parche momentáneo?','Se instalan mesas de diálogo: ¿llegarán a algo?','La calle espera respuestas concretas, no solo anuncios.','¿Concesión o estrategia? Analizamos el giro oficial.','El costo fiscal de las ayudas: ¿quién lo paga?','¿El diálogo transformará algo o solo ganará tiempo?','Expectación ciudadana ante las promesas oficiales.','¿Basta con los anuncios? La calle opina.','Entre la esperanza y el escepticismo: el país observa.'],
+   4:['Denuncias por exceso de fuerza en los operativos.','Organismos observan con preocupación la situación.','El gobierno defiende su accionar; la oposición cuestiona.','¿Proporcionalidad o exceso? Debate sobre los operativos.','Testimonios de afectados por la represión.','La comunidad internacional sigue de cerca los hechos.','¿Hasta dónde puede llegar el Estado? Análisis jurídico.','Contrastamos la versión oficial con los testimonios.','El país se pregunta por el límite del uso de la fuerza.'],
+   5:['Estado de excepción: ¿qué implica para la ciudadanía?','Explicamos qué garantías quedan suspendidas.','Periodistas reportan restricciones para informar.','¿Es constitucional la medida? Opiniones jurídicas.','La ciudadanía, entre el temor y la incertidumbre.','¿Qué dicen los organismos de derechos humanos?','Estado de excepción: antecedentes y consecuencias.','¿Cuánto puede durar la medida excepcional?','El país atraviesa su momento más delicado.']}},
+
+ {n:4, nombre:'Señal Abierta', alineacion:'Alternativo / socialdemócrata', color:'#d98a41',
+  msgs:{
+   1:['El "progreso" no llega a los barrios: radiografía.','¿Quién se beneficia del modelo económico? Debate.','La riqueza crece arriba, la necesidad abajo.','Las cifras que el gobierno prefiere no mostrar.','Desigualdad: el verdadero problema estructural.','El costo de vida golpea a quienes menos tienen.','¿Desarrollo para quién? Las voces olvidadas.','Radiografía del trabajo precario en el país.','Los números no cuadran para las mayorías.'],
+   2:['El malestar tiene causas profundas: análisis.','No es vandalismo, es hambre: testimonios.','Las cifras oficiales no cuentan toda la historia.','El descontento es una respuesta, no una anomalía.','¿Qué empuja a la gente a la calle? Investigación.','La protesta social tiene memoria y razones.','Criminalizar el reclamo no resuelve sus causas.','Las demandas ignoradas hoy son las protestas de mañana.','Escuchar antes que condenar: una mirada distinta.'],
+   3:['Los bonos no alcanzan: el problema es estructural.','Organización, no limosnas: dicen las asambleas.','El pueblo aprende que unido puede más.','¿Concesiones reales o pausa estratégica? Análisis.','El diálogo sin cambios profundos es solo una tregua.','La calle no se conforma con anuncios: crónica.','Las raíces del conflicto siguen intactas.','¿Se puede reformar lo que está roto de base?','La dignidad no se compra con bonos.'],
+   4:['La represión no apaga el reclamo, lo multiplica.','Testimonios de las familias afectadas por operativos.','Criminalizar la protesta no resuelve nada.','El uso de la fuerza, confesión de impotencia.','Cuando el Estado golpea, la comunidad se organiza.','La violencia institucional no traerá la paz.','Denunciamos el hostigamiento a la prensa crítica.','La solidaridad crece donde la represión golpea.','La historia juzgará estos días.'],
+   5:['El estado de excepción no es la salida: es el problema.','La democracia se defiende con más democracia.','Historia de cómo las excepciones se vuelven costumbre.','Suspender garantías es suspender derechos.','El miedo no gobierna para siempre.','Cuando callan las garantías, habla la resistencia.','La excepción revela lo que el poder esconde.','Organizarse es un derecho, incluso —y sobre todo— hoy.','La historia la escriben los pueblos, no los decretos.']}},
+
+ {n:5, nombre:'La Voz del Sur', alineacion:'Popular / comunitario', color:'#8fbc7f',
+  msgs:{
+   1:['La otra cara del "orden": ollas vacías y sueldos que no alcanzan.','El pueblo trabajador sostiene el país y recibe migajas.','Desde los barrios: la vida real no sale en la tele oficial.','El costo de vivir mientras otros acumulan.','Las manos que producen, las manos vacías.','Crónica del barrio: donde la estadística no llega.','El trabajo que nadie ve sostiene lo que todos usan.','La riqueza se va, la necesidad se queda.','Voces del mercado, de la fábrica, de la calle.'],
+   2:['Cuando el pueblo despierta, el poder tiembla.','Cacerolazos y mingas: el tejido popular se activa.','La calle habla y pide ser escuchada.','El pueblo no quiere violencia: quiere vivir digno.','Vecinos organizados: la fuerza silenciosa crece.','De la queja a la asamblea: el barrio se organiza.','La solidaridad es nuestra mejor herramienta.','Cada olla común, un acto de resistencia.','El pueblo se reconoce en la calle.'],
+   3:['Los bonos son migajas del banquete que el pueblo cocina.','Organización, no limosnas: dicen las asambleas.','El pueblo aprende que unido puede más.','No nos callan con anuncios: nos organizamos.','La dignidad no se vende, se defiende.','El pueblo ya no cree en promesas: construye.','De cada necesidad, una organización.','La unidad es nuestra cosecha más valiosa.','El pueblo negocia de pie, nunca de rodillas.'],
+   4:['A más represión, más organización: crónica.','La primera línea protege, la comunidad sostiene.','Cada detenido es un motivo más para no rendirse.','El pueblo no olvida a sus presos ni a sus caídos.','Donde golpean, sembramos más organización.','La solidaridad florece bajo la tormenta.','No tenemos armas: tenemos razón y unidad.','La memoria del pueblo es más fuerte que el miedo.','Resistir es existir.'],
+   5:['El estado de excepción no detiene al pueblo organizado.','Donde el Estado calla, el pueblo habla.','La solidaridad es nuestra mejor arma.','Ni el toque de queda apaga la voz del barrio.','El pueblo sostiene la vida cuando el poder la abandona.','La excepción nos enseña lo que el poder esconde.','Organizados, ni el silencio impuesto nos calla.','El pueblo cuida al pueblo.','La historia no se detiene por decreto.']}},
+
+ {n:6, nombre:'Radio Libre TV', alineacion:'Revolucionario democrático', color:'#c94b4b',
+  msgs:{
+   1:['El poder no está en los palacios, está en quienes producen.','¿Quién produce la riqueza? Quienes trabajan. Ellos deben decidir.','La obediencia es el verdadero pilar del orden actual.','El poder depende de tu trabajo: recuérdalo.','Sin tu trabajo, nada funciona: esa es tu fuerza.','La riqueza la hacen muchos, la disfrutan pocos.','¿Por qué quien produce decide tan poco?','El secreto del poder: todos obedecen hasta que dejan de hacerlo.','La historia la hacen quienes trabajan, no quienes mandan.'],
+   2:['La crisis la pagan los de abajo: basta.','Retirar el consentimiento: la fuerza más poderosa.','Cada huelga enseña quién mueve realmente el mundo.','No es caos: es el pueblo despertando.','El orden que defienden es el orden del hambre.','Organizarse es el primer acto de libertad.','La protesta es el idioma de quienes no son escuchados.','Cuando el pueblo para, el mundo se detiene.','Tu fuerza no está en la queja, está en la unión.'],
+   3:['No queremos migajas: queremos decidir.','Bonos hoy, ajuste mañana: la rueda no cambia sin poder popular.','La unidad de los trabajadores es la salida.','El diálogo que no cambia el poder, lo sostiene.','Las concesiones se arrancan, no se agradecen.','No confundas pausa con victoria: organízate.','El poder no se negocia: se construye.','Cada derecho conquistado fue primero una lucha.','La unidad no se declama: se practica.'],
+   4:['La represión es el lenguaje de quien pierde legitimidad.','El pueblo organizado es imparable: la historia lo demuestra.','Cada golpe recibido es una lección de por qué debemos vencer.','No temas su fuerza: teme tu propia desunión.','La represión no apaga ideas, las siembra.','Donde hay represión, hay un poder que se desmorona.','La fuerza del pueblo es pacífica, pero invencible unida.','Cada preso político es un testigo de su miedo.','La historia está del lado de quienes producen.'],
+   5:['El estado de excepción es su última carta: están acabados.','Cuando solo queda la fuerza, el poder ya cambió de manos.','El futuro no se pide: se construye sin ellos.','La excepción es la confesión del poder: ya no convencen.','El pueblo unido es más fuerte que cualquier decreto.','Lo que el poder suspende por decreto, el pueblo lo ejerce igual.','El estado de excepción acelera lo que teme.','Cuando el poder se queda sin consenso, solo queda el pueblo.','La nueva sociedad nace mientras la vieja se defiende.']}},
+
+ {n:7, nombre:'Frecuencia Insurgente', alineacion:'Anti-Estado absoluto', color:'#c1272d',
+  msgs:{
+   1:['TODO Estado protege a los de arriba: la evidencia está en tu plato.','No hay Estado neutral: hay comité de administración de los ricos.','La ley que te oprime fue escrita por quienes te explotan.','El orden que respetas es la jaula que habitas.','Sus instituciones existen para conservarse a sí mismas.','No es democracia: es la dictadura del capital con urnas.','El Estado no te representa: te administra.','Tus impuestos financian tu propia vigilancia.','La normalidad que defienden es tu hambre de todos los días.'],
+   2:['El orden que defienden es el orden del hambre.','No protestes: organízate. No pidas: construye poder.','El Estado no se reforma desde adentro: se desmonta desde abajo.','Su "normalidad" es tu derrota diaria.','No les temas: ellos te necesitan, tú no los necesitas.','Cada ley nueva es un cerco nuevo: derribémoslos juntos.','El cambio no vendrá de sus urnas, vendrá de tus manos.','La obediencia es su capital: retírala.','No hay salvadores: hay pueblos que se salvan solos.'],
+   3:['Bonos: el precio que pagan por tu silencio.','El diálogo con el opresor solo administra tu derrota.','Ninguna concesión reemplaza el poder propio.','Sus migajas compran tu paciencia, no tu libertad.','No negocies tu emancipación: constrúyela.','La paz que ofrecen es la paz del cementerio.','Cada bono es una cadena dorada: rómpela.','Su diálogo es trampa: tu organización es salida.','No esperes su permiso para ser libre.'],
+   4:['Su violencia es el miedo a perder sus privilegios.','Cada golpe del Estado es una razón más para derribarlo.','No temen tus gritos: temen tu organización.','La represión es el último idioma del poder moribundo.','Sus cárceles no guardan delincuentes: guardan ideas.','Cada preso político deslegitima más que mil discursos.','El Estado golpea porque ya no puede convencer.','Su fuerza es tu oportunidad: muestra su verdadera cara.','No te defienden: se defienden de ti.'],
+   5:['El estado de excepción es su última carta: están acabados.','Cuando solo queda la fuerza, el poder ya cambió de manos.','El futuro no se pide: se construye sin ellos.','Su decreto de excepción es nuestro certificado de mayoría.','Lo que suspenden por decreto, lo ejercemos por derecho.','El Estado muere de miedo: su excepción lo confiesa.','Ni su última arma detiene lo que ya despertó.','La caída empezó cuando dejaron de convencerte.','Sin Estado se puede vivir; sin pueblo, no.']}}
+];
+// ===== EFECTO AMBIENTE DE CADA CANAL (jornadas tranquilas) =====
+const CANAL_AMBIENTE = {
+ 1:{ fx:{consc:-1, mom:-1, state:-1}, ambiente:{
+   conciencia:['La conciencia cívica se fortalece confiando en las instituciones.','El pueblo confía: la normalidad es la mejor política.'],
+   preparacion:['No hay nada que preparar: el país ya funciona bien.','La preparación ciudadana es confiar en sus autoridades.'],
+   alerta:['La calma vuelve gracias a la firmeza del Estado.','El orden se restablece; la tranquilidad regresa a los hogares.'],
+   neutro:['Un día más de estabilidad bajo la guía del Gobierno.','La familia nacional vive en paz y armonía.']}},
+ 2:{ fx:{consc:-1, mom:-1, state:0}, ambiente:{
+   conciencia:['La confianza del consumidor sube: la gente cree en el modelo.','El optimismo empresarial contagia a la ciudadanía.'],
+   preparacion:['Los mercados premian la estabilidad: nada que temer.','La inversión garantiza el futuro: sigamos así.'],
+   alerta:['La normalidad retorna y los mercados lo celebran.','Con orden, la economía vuelve a respirar.'],
+   neutro:['Trabajar, producir, progresar: la receta del éxito.','El esfuerzo individual construye naciones.']}},
+ 3:{ fx:{consc:0, mom:0, state:0}, ambiente:{
+   conciencia:['¿Está la ciudadanía informada? Nuestro compromiso es contarle.','La conciencia crítica empieza por buenas preguntas.'],
+   preparacion:['¿Se prepara el país para el diálogo o para el choque?','La preparación del tejido social definirá lo que viene.'],
+   alerta:['La tensión baja, pero las causas siguen: estemos atentos.','Menos ruido, más preguntas: así se informa.'],
+   neutro:['Contrastamos versiones para que usted decida.','Informar con rigor es nuestra única bandera.']}},
+ 4:{ fx:{consc:1, mom:0, state:0}, ambiente:{
+   conciencia:['La conciencia crece cuando se cuentan las causas, no solo los hechos.','Un pueblo informado no se conforma con migajas.'],
+   preparacion:['La preparación popular se mide en organización, no en paciencia.','Cada asamblea suma a la preparación del cambio.'],
+   alerta:['La tensión sube: escuchemos las causas antes que condenar los síntomas.','Cuando sube la alerta, baja la excusa de ignorar.'],
+   neutro:['La desigualdad no es un tema: es el tema.','Otras voces, otras verdades: aquí caben.']}},
+ 5:{ fx:{consc:1, mom:1, state:0}, ambiente:{
+   conciencia:['La conciencia no se enciende sola: se cultiva en comunidad.','Cada olla común alimenta cuerpos y conciencias.'],
+   preparacion:['La preparación del pueblo está en sus manos organizadas.','Minga tras minga, el pueblo se prepara.'],
+   alerta:['Con la alerta alta, el pueblo se cuida y se cuida entre sí.','La tensión se enfrenta con organización, no con miedo.'],
+   neutro:['El pueblo se organiza barrio a barrio.','La solidaridad es nuestra cotidianidad.']}},
+ 6:{ fx:{consc:1, mom:1, state:1}, ambiente:{
+   conciencia:['La conciencia de clase es descubrir que tu fuerza es colectiva.','Cada trabajador que entiende su poder, enciende a otro.'],
+   preparacion:['La preparación no espera: se construye hoy, asamblea por asamblea.','Un pueblo preparado es un pueblo libre en construcción.'],
+   alerta:['La alerta alta confirma lo que decimos: el poder tiene miedo.','Cuando el poder se pone nervioso, es porque el pueblo avanza.'],
+   neutro:['Organizarse es la tarea de todos los días.','El poder popular se practica, no se espera.']}},
+ 7:{ fx:{consc:2, mom:1, state:1}, ambiente:{
+   conciencia:['La conciencia total es entender que ninguna jaula es natural.','Despierta: la obediencia es el único sostén de tu opresor.'],
+   preparacion:['La preparación final no pide permiso: construye el mundo nuevo.','Cada acto de autonomía es un ladrillo fuera del muro.'],
+   alerta:['La alerta máxima es su confesión: ya solo les queda el miedo.','Cuanto más se atrincheran, más cerca está el final.'],
+   neutro:['Sin Estado se puede vivir; sin pueblo, no.','La libertad no se pide: se practica.']}}
+};
+
+// Eventos "tranquilos" que permiten la emisión ambiente del canal sintonizado
+const MINOR_EVENTS = new Set(['evTranquila','evMusica','evMural','evMemoria','evTrueque','evRadioPirata','evMigracionCampo','evOllas','evCabildo','evSolidaridad']);
+function mensajeCanal(canal){
+  const fase = G.regime.fase;
+  const arr = canal.msgs[fase] || canal.msgs[1];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
 const DISTRICT_DEFS = [
-  { id:'mina', name:'Proyecto Mega-minero (Litio)', type:'producción', pop:'2.000 trabajadores + territorio', base:20 },
-  { id:'maquila', name:'Maquila / Parque Industrial', type:'producción', pop:'5.000 obreros y obreras', base:15 },
-  { id:'puerto', name:'Puerto y Terminal Logística', type:'producción', pop:'1.800 estibadores y camioneros', base:25 },
-  { id:'barrio', name:'Barrio Popular', type:'comunidad', pop:'60.000 vecinos y vecinas', base:10 },
-  { id:'mercado', name:'Mercado y Trabajo Informal', type:'comunidad', pop:'Recicladores, ambulantes, repartidores', base:5 },
-  { id:'resguardo', name:'Resguardo Indígena', type:'territorio', pop:'Autoridades ancestrales y comunidad', base:30 },
-  { id:'comuna', name:'Comuna / Poder Comunal', type:'comunidad', pop:'Consejos comunales organizados', base:15 },
-  { id:'univ', name:'Universidad Pública', type:'intelectual', pop:'30.000 estudiantes', base:10 },
-  { id:'finanzas', name:'Grupos Económicos', type:'capital', pop:'Los bancos y el poder económico', base:0, hostile:true },
-  { id:'medios', name:'Grupo Mediático', type:'ideología', pop:'El monopolio de la palabra', base:0, hostile:true },
-  { id:'gobierno', name:'Casa de Gobierno', type:'estado', pop:'El aparato del Estado', base:0, hostile:true },
+  { id:'mina', name:'Proyecto Mega-minero (Litio)', type:'producción', pop:'2.000 trabajadores + territorio', base:20, cap:4 },
+  { id:'maquila', name:'Maquila / Parque Industrial', type:'producción', pop:'5.000 obreros y obreras', base:15, cap:5 },
+  { id:'puerto', name:'Puerto y Terminal Logística', type:'producción', pop:'1.800 estibadores y camioneros', base:25, cap:5 },
+  { id:'barrio', name:'Barrio Popular', type:'comunidad', pop:'60.000 vecinos y vecinas', base:10, cap:3 },
+  { id:'mercado', name:'Mercado y Trabajo Informal', type:'comunidad', pop:'Recicladores, ambulantes, repartidores', base:5, cap:3 },
+  { id:'resguardo', name:'Resguardo Indígena', type:'territorio', pop:'Autoridades ancestrales y comunidad', base:30, cap:2 },
+  { id:'comuna', name:'Comuna / Poder Comunal', type:'comunidad', pop:'Consejos comunales organizados', base:15, cap:3 },
+  { id:'univ', name:'Universidad Pública', type:'intelectual', pop:'30.000 estudiantes', base:10, cap:3 },
+  { id:'finanzas', name:'Grupos Económicos', type:'capital', pop:'Los bancos y el poder económico', base:0, hostile:true, cap:0 },
+  { id:'medios', name:'Grupo Mediático', type:'ideología', pop:'El monopolio de la palabra', base:0, hostile:true, cap:0 },
+  { id:'gobierno', name:'Casa de Gobierno', type:'estado', pop:'El aparato del Estado', base:0, hostile:true, cap:0 },
 ];
 
 const MINISTERS = {
@@ -331,6 +460,7 @@ function tickCondiciones(){
 }
 
 const REC_NAMES = { alimentos:'🍞 Alimentos', herramientas:'🔧 Herramientas', materiales:'🧱 Materiales', tecnologia:'💻 Tecnología' };
+const NIVEL_MERCADO_NAMES = {1:'Trueque barrial', 2:'Mercado comunal', 3:'Red regional de mercados'};
 
 const QUOTE_POOLS = {
   represion: [
@@ -503,13 +633,14 @@ let G, DISTRICTS, eliminationQueue = [];
 function initGame() {
   G = { turn:1, sp:5, consc:15, mom:10, state:DIFF.alertStart, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[],
         rec:{alimentos:Math.round(6*DIFF.resMult), herramientas:Math.round(4*DIFF.resMult), materiales:Math.round(4*DIFF.resMult), tecnologia:Math.round(2*DIFF.resMult)},
-        medioComunitario:false, frentePopular:false, condiciones:{}, diario:[], historia:[] };
+        medioComunitario:false, frentePopular:false, condiciones:{}, diario:[], historia:[], nivelMercado:1, canalTV:4, tvMsg:null, tvEfecto:null, ultimoEventoNombre:null };
   G.regime = { capital:DIFF.regimeCapital, fase:1, bots:0, internet:0, militarizado:0, collapsed:false, lastMeasure:'Observa', lastDetail:'El régimen aún subestima al movimiento.', lastMinister:'🏛️ El Régimen' };
-  DISTRICTS = DISTRICT_DEFS.map(d => ({...d, org: d.hostile ? 100 : d.base, council:false, projects:0, cooperative:false, ruta:'abierta' }));
+  DISTRICTS = DISTRICT_DEFS.map(d => ({...d, org: d.hostile ? 100 : d.base, council:false, projects:0, cooperative:false, ruta:'abierta', cap:(d.cap||3) }));
   G.leaders.push(makeLeader('popular'));
   G.leaders.push(makeLeader('sindical'));
   registrarDiario('inicio', `Partida iniciada en dificultad ${DIFF.label}.`);
-  log('Comienzas con dos cuadros y un pequeño Fondo Común. Organiza comunidades: cada sector produce un recurso distinto.', 'quote');
+  snapshotRecursos();
+  log('Comienzas con dos cuadros y un pequeño Fondo Común. Organiza comunidades: cada sector produce un recurso y lo envía por una ruta con capacidad limitada.', 'quote');
   log('📖 "Ni calco ni copia, sino creación heroica." — José Carlos Mariátegui', 'quote');
   render();
 }
@@ -531,6 +662,173 @@ function snapshotRecursos(){
   if(prev){ cur.da=cur.a-prev.a; cur.dh=cur.h-prev.h; cur.dm=cur.m-prev.m; cur.dt=cur.t-prev.t; }
   else { cur.da=cur.a; cur.dh=cur.h; cur.dm=cur.m; cur.dt=cur.t; }
   G.historia.push(cur);
+}
+function snapshotSiNuevo(){
+  const last = G.historia[G.historia.length-1];
+  if(last && last.turn===G.turn) return;
+  snapshotRecursos();
+}
+function eventosPorJornada(){
+  const map = {};
+  G.diario.forEach(e=>{
+    if(['régimen','evento','decisión','paro','represión','rutas'].includes(e.type)){
+      if(!map[e.turn]) map[e.turn]=[];
+      map[e.turn].push(e.type);
+    }
+  });
+  return map;
+}
+
+// ===== GRÁFICA LINEAL (SVG) + EVENTOS =====
+function renderGraficaRecursos(containerId){
+  const data = G.historia;
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!data || data.length<2){ el.innerHTML='<p class="cuadro-empty">Juega al menos una jornada para ver la gráfica.</p>'; return; }
+
+  const W=640, H=280, padL=40, padR=12, padT=14, padB=28;
+  const plotW = W-padL-padR, plotH = H-padT-padB;
+
+  let maxV = 0;
+  data.forEach(h=>{ maxV=Math.max(maxV, h.a, h.h, h.m, h.t); });
+  maxV = Math.max(5, Math.ceil(maxV/5)*5);
+
+  const n = data.length;
+  const xFor = i => padL + (n===1? plotW/2 : (i/(n-1))*plotW);
+  const yFor = v => padT + plotH - (v/maxV)*plotH;
+
+  const series = [
+    {key:'a', color:'#8fbc7f', label:'🍞 Alimentos'},
+    {key:'h', color:'#d9a441', label:'🔧 Herramientas'},
+    {key:'m', color:'#d97b7f', label:'🧱 Materiales'},
+    {key:'t', color:'#7da3c8', label:'💻 Tecnología'},
+  ];
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:#0d0b0a;border:1px solid #3a342e;border-radius:6px;">`;
+
+  const steps = 5;
+  for(let s=0;s<=steps;s++){
+    const v = (maxV/steps)*s;
+    const y = yFor(v);
+    svg += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#2a2622" stroke-width="1"/>`;
+    svg += `<text x="${padL-6}" y="${y+4}" fill="#9a8f80" font-size="11" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  const labelEvery = Math.max(1, Math.ceil(n/10));
+  data.forEach((h,i)=>{
+    if(i%labelEvery===0 || i===n-1){
+      svg += `<text x="${xFor(i)}" y="${H-8}" fill="#9a8f80" font-size="11" text-anchor="middle">${h.turn}</text>`;
+    }
+  });
+  series.forEach(s=>{
+    let path='';
+    data.forEach((h,i)=>{ const x=xFor(i), y=yFor(h[s.key]); path += (i===0?'M':'L')+x+' '+y+' '; });
+    svg += `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="2"/>`;
+    data.forEach((h,i)=>{ svg += `<circle cx="${xFor(i)}" cy="${yFor(h[s.key])}" r="2.5" fill="${s.color}"/>`; });
+  });
+
+  const evMap = eventosPorJornada();
+  data.forEach((h,i)=>{
+    const evs = evMap[h.turn];
+    if(evs && evs.length){
+      let color='#d9a441';
+      if(evs.includes('paro')) color='#8fbc7f';
+      else if(evs.includes('régimen')||evs.includes('represión')) color='#c1272d';
+      else if(evs.includes('rutas')) color='#8a3b6e';
+      else if(evs.includes('decisión')) color='#7da3c8';
+      const x=xFor(i);
+      svg += `<line x1="${x}" y1="${padT+plotH}" x2="${x}" y2="${padT+plotH-16}" stroke="${color}" stroke-width="2" opacity="0.9"/>`;
+      svg += `<circle cx="${x}" cy="${padT+plotH-18}" r="3.5" fill="${color}"/>`;
+    }
+  });
+  svg += '</svg>';
+
+  const legend = '<div class="grafica-leyenda">' + series.map(s=>`<span style="color:${s.color}">━ ${s.label}</span>`).join('') + '</div>';
+  const evLegend = '<div class="grafica-leyenda">' +
+    '<span style="color:#8fbc7f">▲ Paro</span>' +
+    '<span style="color:#c1272d">▲ Régimen/Represión</span>' +
+    '<span style="color:#8a3b6e">▲ Rutas</span>' +
+    '<span style="color:#7da3c8">▲ Decisiones</span>' +
+    '<span style="color:#d9a441">▲ Eventos</span>' +
+    '</div>';
+  el.innerHTML = svg + legend + evLegend;
+}
+
+// ===== TV PIXELADA CON CANALES =====
+function setCanal(n){ G.canalTV = n; renderCanales(); renderTV(); }
+function renderCanales(){
+  const el = document.getElementById('canales'); if(!el) return;
+  el.innerHTML = CANALES.map(c=>
+    `<button class="canal-btn ${G.canalTV===c.n?'activo':''}" onclick="setCanal(${c.n})" title="${c.nombre} — ${c.alineacion}">Canal ${c.n}</button>`
+  ).join('');
+}
+function renderTV(){
+  const el = document.getElementById('tv-container');
+  if(!el) return;
+  const canal = CANALES.find(c=>c.n===G.canalTV) || CANALES[3];
+  const msg = mensajeCanal(canal);
+  const base = canal.color;
+
+  const px=10, cols=14, rows=9;
+  const W=cols*px, H=rows*px;
+  let seed = 0; for(let c of msg) seed += c.charCodeAt(0);
+  const rnd = ()=>{ seed = (seed*9301+49297)%233280; return seed/233280; };
+  let screen='';
+  const r0=parseInt(base.slice(1,3),16), g0=parseInt(base.slice(3,5),16), b0=parseInt(base.slice(5,7),16);
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const shade = 0.35 + rnd()*0.65;
+      screen += `<rect x="${x*px}" y="${y*px}" width="${px}" height="${px}" fill="rgb(${Math.round(r0*shade)},${Math.round(g0*shade)},${Math.round(b0*shade)})"/>`;
+    }
+  }
+
+  const bodyX=10, bodyY=36, bodyW=W+58, bodyH=H+24;
+  const screenX=bodyX+12, screenY=bodyY+12;
+  const knobX=screenX+W+18;
+  const svgW=bodyX+bodyW+8, svgH=bodyY+bodyH+26;
+  const antLx=bodyX+bodyW*0.4, antRx=bodyX+bodyW*0.6;
+
+  const svg = `
+  <svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto;">
+    <line x1="${antLx}" y1="${bodyY}" x2="${antLx-26}" y2="8" stroke="#9a8f80" stroke-width="3"/>
+    <line x1="${antRx}" y1="${bodyY}" x2="${antRx+26}" y2="8" stroke="#9a8f80" stroke-width="3"/>
+    <circle cx="${antLx-26}" cy="8" r="3" fill="#9a8f80"/>
+    <circle cx="${antRx+26}" cy="8" r="3" fill="#9a8f80"/>
+    <rect x="${bodyX}" y="${bodyY}" width="${bodyW}" height="${bodyH}" rx="10" fill="#3a342e" stroke="#1a1614" stroke-width="3"/>
+    <rect x="${screenX}" y="${screenY}" width="${W}" height="${H}" rx="4" fill="#0d0b0a"/>
+    <g transform="translate(${screenX},${screenY})">${screen}</g>
+    ${Array.from({length:rows},(_,i)=>`<rect x="${screenX}" y="${screenY+i*px}" width="${W}" height="1" fill="rgba(0,0,0,0.35)"/>`).join('')}
+    <circle cx="${knobX}" cy="${screenY+20}" r="7" fill="#5a5248" stroke="#1a1614" stroke-width="2"/>
+    <circle cx="${knobX}" cy="${screenY+44}" r="7" fill="#5a5248" stroke="#1a1614" stroke-width="2"/>
+    <rect x="${bodyX+18}" y="${bodyY+bodyH}" width="10" height="14" fill="#2a2622"/>
+    <rect x="${bodyX+bodyW-30}" y="${bodyY+bodyH}" width="10" height="14" fill="#2a2622"/>
+  </svg>`;
+
+    const displayMsg = G.tvMsg || mensajeCanal(canal);
+    const effectLine = G.tvMsg ? `<br><span style="color:#8fbc7f;">Efecto: ${G.tvEfecto||'sin efecto'}</span>` : '';
+    el.innerHTML = svg + `<div class="tv-caption">📺 CANAL ${canal.n} — <b>${canal.nombre}</b> · <i>${canal.alineacion}</i><br>"${displayMsg}"${effectLine}</div>`;
+}
+
+function canalAmbiente(){
+  const canal = CANALES.find(c=>c.n===G.canalTV) || CANALES[3];
+  const amb = CANAL_AMBIENTE[G.canalTV] || CANAL_AMBIENTE[4];
+  const readiness = strikeReadiness();
+  let cat = 'neutro';
+  if(G.state >= 55) cat = 'alerta';
+  else if(readiness >= 60) cat = 'preparacion';
+  else if(G.consc >= 55 || G.consc <= 25) cat = 'conciencia';
+  const pool = amb.ambiente[cat] || amb.ambiente.neutro;
+  const msg = pool[Math.floor(Math.random()*pool.length)];
+  const fx = amb.fx;
+  G.consc = Math.max(0, Math.min(100, G.consc + fx.consc));
+  G.mom   = Math.max(0, Math.min(100, G.mom   + fx.mom));
+  G.state = Math.max(0, Math.min(100, G.state + fx.state));
+  const partes=[];
+  if(fx.consc) partes.push(`Conciencia ${fx.consc>0?'+':''}${fx.consc}`);
+  if(fx.mom)   partes.push(`Impulso ${fx.mom>0?'+':''}${fx.mom}`);
+  if(fx.state) partes.push(`Alerta ${fx.state>0?'+':''}${fx.state}`);
+  G.tvMsg = msg;
+  G.tvEfecto = partes.length ? partes.join(' · ') : 'sin efecto';
+  registrarDiario('tv', `Canal ${canal.n} (${canal.nombre}): "${msg}" → ${G.tvEfecto}.`);
 }
 
 // ===== CUADROS =====
@@ -663,6 +961,11 @@ function aporteRecursos(d){
     case 'puerto': r.tecnologia = units + projectBonus + coopBonus; r.herramientas = Math.floor(units/2); break;
     case 'univ': r.tecnologia = units + projectBonus + coopBonus; break;
   }
+  const cap = d.cap || 3;
+  r.alimentos = Math.min(r.alimentos, cap);
+  r.herramientas = Math.min(r.herramientas, cap);
+  r.materiales = Math.min(r.materiales, cap);
+  r.tecnologia = Math.min(r.tecnologia, cap);
   return r;
 }
 function generarTodosRecursos(){
@@ -722,14 +1025,49 @@ function costoLabel(costo){
 }
 
 // ===== MERCADO POPULAR =====
+function costoIntercambio(origen, destino){
+  if(origen===destino) return {dar:0, recibir:0};
+  let dar, recibir;
+  if(G.nivelMercado===1){ dar=3; recibir=1; }
+  else if(G.nivelMercado===2){ dar=2; recibir=1; }
+  else { dar=3; recibir=2; }
+  if(G.nivelMercado<3 && G.rec[destino]<=3) dar+=1;
+  if(G.rec[origen]>=15) dar=Math.max(1,dar-1);
+  return {dar, recibir};
+}
+function actualizarTasa(){
+  const origen = document.getElementById('merc-origen').value;
+  const destino = document.getElementById('merc-destino').value;
+  const el = document.getElementById('merc-tasa');
+  if(origen===destino){ el.textContent='Elige dos recursos distintos.'; return; }
+  const c = costoIntercambio(origen, destino);
+  el.innerHTML = `Tasa actual: entregar <b>${c.dar}</b> ${REC_NAMES[origen]} → recibir <b>${c.recibir}</b> ${REC_NAMES[destino]}`;
+}
 function intercambiar(){
   const origen = document.getElementById('merc-origen').value;
   const destino = document.getElementById('merc-destino').value;
-  if(origen===destino){ log('Elige dos recursos distintos para intercambiar.', 'bad'); return; }
-  if(G.rec[origen]<2){ log(`Necesitas 2 de ${REC_NAMES[origen]} para intercambiar.`, 'bad'); return; }
-  G.rec[origen]-=2; G.rec[destino]+=1;
-  registrarDiario('mercado', `Intercambió 2 ${REC_NAMES[origen]} → 1 ${REC_NAMES[destino]}.`);
-  log(`🪙 Mercado popular: 2 ${REC_NAMES[origen]} → 1 ${REC_NAMES[destino]}.`, 'good');
+  if(origen===destino){ log('Elige dos recursos distintos.', 'bad'); return; }
+  const c = costoIntercambio(origen, destino);
+  if(G.rec[origen]<c.dar){ log(`Necesitas ${c.dar} de ${REC_NAMES[origen]} para este intercambio.`, 'bad'); return; }
+  G.rec[origen]-=c.dar; G.rec[destino]+=c.recibir;
+  registrarDiario('mercado', `Intercambió ${c.dar} ${REC_NAMES[origen]} → ${c.recibir} ${REC_NAMES[destino]} (nivel ${G.nivelMercado}).`);
+  log(`🪙 Mercado: ${c.dar} ${REC_NAMES[origen]} → ${c.recibir} ${REC_NAMES[destino]}.`, 'good');
+  render();
+}
+function mejorarMercado(){
+  if(G.nivelMercado===1){
+    if(G.rec.materiales<4){ log('Mejorar a Mercado Comunal cuesta 4 🧱 Materiales.', 'bad'); return; }
+    pagar({materiales:4}); G.nivelMercado=2;
+    registrarDiario('mercado','Mejoró el mercado a Mercado Comunal (tasa 2→1).');
+    log('🪙 El mercado se convierte en <b>MERCADO COMUNAL</b>. Mejor tasa de intercambio (2→1).', 'good');
+  } else if(G.nivelMercado===2){
+    if(G.rec.materiales<6 || G.rec.herramientas<2){ log('Mejorar a Red Regional cuesta 6 🧱 + 2 🔧.', 'bad'); return; }
+    pagar({materiales:6, herramientas:2}); G.nivelMercado=3;
+    registrarDiario('mercado','Mejoró el mercado a Red Regional (tasa 3→2, sin recargo por escasez).');
+    log('🪙 El mercado se convierte en <b>RED REGIONAL DE MERCADOS</b>. Tasa eficiente (3→2) y sin recargo por escasez.', 'good');
+  } else {
+    log('El mercado ya está al máximo nivel.', 'state');
+  }
   render();
 }
 
@@ -743,15 +1081,31 @@ function bloquearRuta(){
   regimeAction('inteligencia','Bloqueo de ruta',`El régimen bloquea la ruta de abastecimiento de ${d.name}. Su producción no llega al Fondo Común hasta reabrirla.`, 'bad');
   return true;
 }
-function reabrirRuta(id){
+function gestionarRuta(id){
   const d = DISTRICTS.find(x=>x.id===id);
-  if(!d || d.ruta!=='bloqueada') return;
-  if(G.sp<1 || G.rec.materiales<1){ log('Reabrir una ruta cuesta 1 PS y 1 🧱 Material.', 'bad'); return; }
-  G.sp--; pagar({materiales:1});
-  d.ruta='abierta';
-  registrarDiario('rutas', `Reabrió la ruta de abastecimiento de ${d.name}.`);
-  log(`🔓 Se reabre la ruta de abastecimiento de <b>${d.name}</b>. El flujo de ${recursoDe(d)} se restablece.`, 'good');
-  render();
+  if(!d || d.hostile) return;
+  const opciones = [];
+  if(d.ruta==='bloqueada'){
+    opciones.push({label:'🔓 Reabrir ruta (1 PS + 1 🧱)', fn:()=>{
+      if(G.sp<1||G.rec.materiales<1){ log('Reabrir cuesta 1 PS y 1 🧱.', 'bad'); return; }
+      G.sp--; pagar({materiales:1}); d.ruta='abierta';
+      registrarDiario('rutas', `Reabrió la ruta de ${d.name}.`);
+      log(`🔓 Se reabre la ruta de <b>${d.name}</b>.`, 'good'); render();
+    }});
+  } else {
+    if(d.cap < 6){
+      opciones.push({label:`🛣️ Ampliar capacidad a ${d.cap+1} (2 🧱)`, fn:()=>{
+        if(G.rec.materiales<2){ log('Ampliar una ruta cuesta 2 🧱.', 'bad'); return; }
+        pagar({materiales:2}); d.cap++;
+        registrarDiario('rutas', `Amplió la ruta de ${d.name} a capacidad ${d.cap}.`);
+        log(`🛣️ Ruta de <b>${d.name}</b> ampliada a capacidad ${d.cap}.`, 'good'); render();
+      }});
+    } else {
+      opciones.push({label:'La ruta está al máximo de capacidad', secondary:true, fn:()=>{}});
+    }
+  }
+  opciones.push({label:'Cerrar', secondary:true, fn:()=>{}});
+  showDecision(`Ruta de ${d.name}`, `<p>Recurso: ${recursoDe(d)} · Capacidad: ${d.cap} · Estado: ${d.ruta==='abierta'?'🟢 abierta':'🔴 bloqueada'}.</p><p>Las rutas con más capacidad dejan pasar más recursos por jornada.</p>`, opciones);
 }
 
 // ===== EL RÉGIMEN =====
@@ -1084,7 +1438,7 @@ const EVENTS = [
 function eventPhase(){
   const total = EVENTS.reduce((s,e)=>s+e.w,0);
   let r = Math.random()*total;
-  for(const e of EVENTS){ if(r < e.w){ e.fn(); return; } r -= e.w; }
+  for(const e of EVENTS){ if(r < e.w){ G.ultimoEventoNombre = e.fn.name; e.fn(); return; } r -= e.w; }
 }
 
 // ===== RENDER =====
@@ -1152,7 +1506,7 @@ function render(){
         ? '<div style="font-size:0.68em;color:#8a5a5a;margin-top:4px;">Pilar del viejo orden.</div>'
         : `<div class="mlabel"><span>Organización</span><span>${Math.round(d.org)}</span></div>
            <div class="mini-bar mini-org"><div style="width:${d.org}%"></div></div>
-           <div class="draporte">Aporte: ${aporteStr}${d.projects? ' · 🏗️ '+d.projects+'/3':''}</div>
+           <div class="draporte">Aporte: ${aporteStr}${d.projects? ' · 🏗️ '+d.projects+'/3':''} · 🛣️ cap ${d.cap}</div>
            ${d.ruta==='bloqueada'?'<div class="druta">🔴 Ruta de abastecimiento bloqueada</div>':''}
            ${d.cooperative? '<div class="dcoop">🔧 Cooperativa de trabajadores</div>':''}
            ${leaderHere?`<div class="dleader">👤 ${leaderHere.name}</div>`:''}`}`;
@@ -1175,7 +1529,9 @@ function render(){
   renderMercado();
   renderRutas();
   renderDiario();
-  renderHistoria();
+  renderGraficaRecursos('grafica-live');
+  renderCanales();
+  renderTV();
 }
 function renderCuadros(){
   const el = document.getElementById('cuadros'); let html='';
@@ -1203,6 +1559,13 @@ function renderCuadros(){
 }
 function renderMercado(){
   document.getElementById('merc-info').innerHTML = `Disponible: 🍞 ${G.rec.alimentos} · 🔧 ${G.rec.herramientas} · 🧱 ${G.rec.materiales} · 💻 ${G.rec.tecnologia}`;
+  document.getElementById('merc-nivel').textContent = `Nivel ${G.nivelMercado} — ${NIVEL_MERCADO_NAMES[G.nivelMercado]}`;
+  const btn = document.getElementById('merc-mejorar');
+  btn.disabled = false;
+  if(G.nivelMercado===1) btn.textContent = 'Mejorar a Mercado Comunal (4 🧱)';
+  else if(G.nivelMercado===2) btn.textContent = 'Mejorar a Red Regional (6 🧱 + 2 🔧)';
+  else { btn.textContent='Mercado al máximo nivel'; btn.disabled=true; }
+  actualizarTasa();
 }
 function renderRutas(){
   const el = document.getElementById('rutas');
@@ -1212,8 +1575,8 @@ function renderRutas(){
     if(!rec) return '';
     const abierta = d.ruta==='abierta';
     const cls = abierta? 'ruta-abierta':'ruta-bloqueada';
-    return `<div class="ruta-chip ${cls}" onclick="reabrirRuta('${d.id}')" title="${abierta?'Ruta abierta':'Ruta bloqueada — clic para reabrir (1 PS + 1 🧱)'}">
-      ${abierta?'🟢':'🔴'} ${d.name}<br><small>${rec}</small>
+    return `<div class="ruta-chip ${cls}" onclick="gestionarRuta('${d.id}')">
+      ${abierta?'🟢':'🔴'} ${d.name}<br><small>${rec} · cap. ${d.cap}/6</small>
     </div>`;
   }).join('');
 }
@@ -1221,15 +1584,6 @@ function renderDiario(){
   const el = document.getElementById('diario-lista');
   const items = G.diario.slice(-60).reverse();
   el.innerHTML = items.map(e=>`<p><b>J${e.turn}</b> <span class="tipo">[${e.type}]</span> ${e.text}</p>`).join('') || '<p class="cuadro-empty">Aún no hay registros.</p>';
-}
-function renderHistoria(){
-  const el = document.getElementById('historia-tabla');
-  if(!G.historia.length){ el.innerHTML='<p class="cuadro-empty">Aún no hay datos.</p>'; return; }
-  const rows = G.historia.slice(-30).map(h=>{
-    const fmt=(v,d)=>`${v} (${d>=0?'+':''}${d})`;
-    return `<tr><td>${h.turn}</td><td>${fmt(h.a,h.da)}</td><td>${fmt(h.h,h.dh)}</td><td>${fmt(h.m,h.dm)}</td><td>${fmt(h.t,h.dt)}</td></tr>`;
-  }).reverse().join('');
-  el.innerHTML = `<table><thead><tr><th>Jornada</th><th>🍞</th><th>🔧</th><th>🧱</th><th>💻</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function setBar(name, v){ document.getElementById(name+'-bar').style.width = Math.max(0,Math.min(100,v))+'%'; document.getElementById(name+'-val').textContent = Math.round(v); }
@@ -1283,7 +1637,7 @@ function endTurn(){
   aplicarEconomia();
   tickCondiciones();
   snapshotRecursos();
-  eventPhase();
+  eventPhase();  if(MINOR_EVENTS.has(G.ultimoEventoNombre)) canalAmbiente();
   maybeSpawnCandidate();
   expireCandidates();
   G.playerMovesThisTurn = [];
@@ -1303,6 +1657,7 @@ function attemptGeneralStrike(){
   log(`⚑ SE CONVOCA AL PARO GENERAL. Preparación: ${Math.round(readiness)}%, Asambleas: ${councils}, Conciencia: ${Math.round(G.consc)}.`, 'event');
   if(readiness>=90 && councils>=3 && G.consc>=60){
     G.over = true;
+    snapshotSiNuevo();
     document.getElementById('end-title').textContent = '🚩 VICTORIA — EL PAÍS SE DETIENE';
     document.getElementById('end-text').innerHTML = `
       <p>Al amanecer, nada se mueve. La mina está parada, el puerto vacío, no hay buses ni mercado. La minga descansa en asamblea.</p>
@@ -1311,6 +1666,7 @@ function attemptGeneralStrike(){
       ${G.martyrs.length ? `<p>Los mártires son nombrados uno a uno: <b>${G.martyrs.join(', ')}</b>. No murieron: se sembraron.</p>` : ''}
       <blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>
       <p><b>Completado en ${G.turn} jornadas · Dificultad: ${DIFF.label}.</b></p>`;
+    renderGraficaRecursos('grafica-final');
     document.getElementById('endscreen').classList.remove('hidden');
   } else {
     let faltan=[];
@@ -1327,6 +1683,7 @@ function checkDefeat(){
   const anyBase = DISTRICTS.some(d => !d.hostile && d.org >= 10);
   if(!anyBase && G.turn > 3){
     G.over = true;
+    snapshotSiNuevo();
     document.getElementById('end-title').textContent = 'EL MOVIMIENTO ES DESMANTELADO';
     document.getElementById('end-text').innerHTML = `
       <p>La organización cae por debajo del umbral de supervivencia. Los cuadros se dispersan — vigilados, procesados, cooptados.</p>
@@ -1334,6 +1691,7 @@ function checkDefeat(){
       <p>Pero la historia de América Latina no se cierra tan fácil. Cada movimiento derrotado deja experiencia, cuadros y memoria.</p>
       <blockquote>"La utopía está en el horizonte: sirve para caminar." — Eduardo Galeano</blockquote>
       <p><b>Estudiar la derrota. Volver a empezar.</b> · Dificultad: ${DIFF.label}</p>`;
+    renderGraficaRecursos('grafica-final');
     document.getElementById('endscreen').classList.remove('hidden');
   }
 }
