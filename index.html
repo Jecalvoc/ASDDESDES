@@ -203,6 +203,12 @@ footer{text-align:center;margin-top:18px;color:var(--tenue);font-size:0.8em;font
 #actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:6px;}
 #actions .action-btn{width:auto;margin-bottom:0;}
 #end-turn{width:100%;margin-top:10px;}
+.term-row{display:grid;grid-template-columns:1fr 110px 30px;align-items:center;gap:8px;margin-bottom:6px;}
+.term-row.lider{background:rgba(212,160,23,0.10);border:1px solid var(--oro);border-radius:4px;padding:3px 5px;}
+.term-label{font-size:0.78em;color:var(--crema);white-space:nowrap;overflow:hidden;}
+.term-val{font-size:0.8em;color:var(--oro-claro);text-align:right;}
+.term-final{margin-top:10px;font-size:0.85em;color:var(--oro);border-top:1px solid var(--rojo-osc);padding-top:8px;}
+.term-final b{color:var(--oro-claro);}
 </style>
 </head>
 <body>
@@ -358,6 +364,11 @@ footer{text-align:center;margin-top:18px;color:var(--tenue);font-size:0.8em;font
 </div>
 <div class="panel" style="margin-bottom:14px;">
   <h2>Fuerzas de Protesta</h2>
+<div class="panel" style="margin-bottom:14px;">
+  <h2>🌡️ Termómetro de Hegemonía</h2>
+  <div id="termometro"></div>
+  <div class="meta-hint">Las dos facciones líderes definen el desenlace. Observa hacia qué final te diriges.</div>
+</div>
   <div id="facciones"></div>
   <div class="meta-hint">Las acciones fortalecen distintas corrientes. Las dos más fuertes definen el final.</div>
 </div>
@@ -479,6 +490,14 @@ const FACCION_POR_ACCION = {
  front:['reformista','comunitaria','sindical','revolucionaria'], genstrike:['revolucionaria','sindical']
 };
 function boostFacciones(id){const m=FACCION_POR_ACCION[id];if(!m)return;m.forEach(f=>{G.facciones[f]=Math.min(100,G.facciones[f]+3);});}
+
+function boostFaccionesObj(obj){
+  Object.keys(obj).forEach(k=>{
+    if(G.facciones[k]!==undefined){
+      G.facciones[k]=Math.max(0,Math.min(100,G.facciones[k]+obj[k]));
+    }
+  });
+}
 function topFacciones(){return Object.keys(G.facciones).map(k=>({k,v:G.facciones[k]})).sort((a,b)=>b.v-a.v);}
 // ===== DIFICULTAD =====
 const DIFFICULTIES = {
@@ -838,6 +857,8 @@ function startGame(key){
   initGame();
 }
 function seccion2Activa(){ return G.consc >= 60; }
+renderTermometro();
+renderFacciones();
 
 // ===== DIARIO E HISTORIA =====
 function registrarDiario(type, text){
@@ -1105,7 +1126,12 @@ function showDecision(title, html, options){
     const b=document.createElement('button');
     b.textContent = opt.label;
     if(opt.secondary) b.style.background='#444';
-    b.onclick = ()=>{ bg.classList.add('hidden'); registrarDiario('decisión', `${title} → eligió "${opt.label}"`); opt.fn(); };
+    b.onclick = ()=>{
+      bg.classList.add('hidden');
+      registrarDiario('decisión', `${title} → eligió "${opt.label}"`);
+      if(opt.fac) boostFaccionesObj(opt.fac);   // ← desplaza facciones
+      opt.fn();
+    };
     c.appendChild(b);
   });
   bg.classList.remove('hidden');
@@ -1474,146 +1500,146 @@ function renderFacciones(){
     h+='<div class="meter"><label>'+f.icono+' '+f.nombre+' <span>'+v+'</span></label><div class="bar"><div style="width:'+v+'%;background:'+f.color+'"></div></div></div>';});
   el.innerHTML=h;
 }
+function renderTermometro(){
+  const el=document.getElementById('termometro');if(!el)return;
+  const top=topFacciones();
+  let h='';
+  top.forEach((f,i)=>{
+    const def=FACCIONES[f.k];
+    const lider=i<2;
+    const medal=i===0?'🥇':(i===1?'🥈':'');
+    h+='<div class="term-row'+(lider?' lider':'')+'">';
+    h+='<div class="term-label">'+medal+' '+def.icono+' '+def.nombre+'</div>';
+    h+='<div class="bar"><div style="width:'+f.v+'%;background:'+def.color+'"></div></div>';
+    h+='<div class="term-val">'+f.v+'</div>';
+    h+='</div>';
+  });
+  const fin=finalPorFacciones();
+  h+='<div class="term-final">Final previsto: <b>'+fin.titulo+'</b></div>';
+  el.innerHTML=h;
+}
 // ===== EVENTOS DE DECISIÓN =====
 function decCrisisMigratoria(){
-  showDecision('Crisis migratoria regional',
-    '<p>La economía de un país vecino colapsa y miles de migrantes llegan buscando refugio. El régimen los usa como chivo expiatorio. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'🤝 Organizar solidaridad e integración (🍞−2)', fn:()=>{
-        const m=DISTRICTS.find(d=>d.id==='mercado'); if(m) m.org=Math.min(100,m.org+6);
-        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); pagar({alimentos:2});
-        log('🤝 El movimiento organiza la acogida. "Ningún ser humano es ilegal."', 'good'); emitQuote('internacionalismo',0.7); render();
-      }},
-      {label:'🏠 Enfocarse solo en lo local', secondary:true, fn:()=>{
-        const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){ const d=pick(t); d.org=Math.min(100,d.org+3); }
-        log('El movimiento se concentra en lo local.', 'state'); render();
-      }},
-    ]);
-}
-function decDesastre(){
-  showDecision('Desastre natural',
-    '<p>Una inundación golpea los barrios populares. El Estado brilla por su ausencia. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'🍲 Desplegar ollas y brigadas (🍞−2, 🧱−1)', fn:()=>{
-        DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+5); });
-        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); G.regime.capital=Math.max(0,G.regime.capital-4);
-        pagar({alimentos:2,materiales:1});
-        log('🍲 El movimiento destina recursos a ollas y brigadas. Donde el Estado no llega, llega la solidaridad.', 'good'); emitQuote('fe',0.6); render();
-      }},
-      {label:'📢 Denunciar la negligencia del régimen', secondary:true, fn:()=>{
-        G.consc=Math.min(100,G.consc+3); G.regime.capital=Math.max(0,G.regime.capital-3); bumpState(3);
-        log('El movimiento denuncia la negligencia.', 'state'); render();
-      }},
-    ]);
-}
-function decTerremoto(){
-  showDecision('Terremoto', '<p>Un terremoto sacude la región. Hay daño y el Estado responde lento. ¿Qué hace el movimiento?</p>', [
-    {label:'🏗️ Brigadas de reconstrucción comunitaria (🧱−2, 🔧−1)', fn:()=>{ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+4);}); G.mom=Math.min(100,G.mom+4); pagar({materiales:2,herramientas:1}); log('🏗️ El movimiento organiza brigadas de reconstrucción. La comunidad se cuida a sí misma.','good'); emitQuote('fe',0.5); render(); }},
-    {label:'📢 Exigir respuesta estatal', secondary:true, fn:()=>{ G.consc=Math.min(100,G.consc+3); G.regime.capital=Math.max(0,G.regime.capital-3); bumpState(3); log('El movimiento exige respuesta estatal y visibiliza la negligencia.','state'); render(); }},
-  ]);
-}
-function decEpidemia(){
-  showDecision('Crisis sanitaria', '<p>Una epidemia golpea y el sistema de salud colapsa. ¿Qué hace el movimiento?</p>', [
-    {label:'🏥 Brigadas de salud comunitaria (🍞−2, 💻−1) — frena la crisis', fn:()=>{ if(hasCond('epidemia')){ delete G.condiciones['epidemia']; log('🏥 Las brigadas de salud y las ollas enfrentan la epidemia con organización popular.','good'); } DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+3);}); G.consc=Math.min(100,G.consc+3); pagar({alimentos:2,tecnologia:1}); emitQuote('fe',0.5); render(); }},
-    {label:'📢 Denunciar el abandono estatal', secondary:true, fn:()=>{ G.consc=Math.min(100,G.consc+4); G.regime.capital=Math.max(0,G.regime.capital-3); log('El movimiento denuncia el abandono. La conciencia crece.','good'); render(); }},
-  ]);
-}
-function decPrivatizacion(){
-  showDecision('Privatización de un servicio', '<p>El régimen anuncia la privatización del agua/energía. ¿Qué hace el movimiento?</p>', [
-    {label:'💧 Defender el servicio como bien común', fn:()=>{ G.consc=Math.min(100,G.consc+4); DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='territorio')d.org=Math.min(100,d.org+4);}); bumpState(5); log('💧 El movimiento defiende el servicio como bien común. "El agua no se vende."','event'); emitQuote('territorio',0.6); render(); }},
-    {label:'🧘 Organizar en silencio mientras', secondary:true, fn:()=>{ const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){const d=pick(t); d.org=Math.min(100,d.org+3);} log('El movimiento se concentra en organizar.','state'); render(); }},
-  ]);
-}
-function decReformaLaboral(){
-  showDecision('Reforma laboral regresiva', '<p>El régimen impulsa una reforma que precariza el trabajo. ¿Qué hace el movimiento?</p>', [
-    {label:'🔧 Paro y movilización sindical', fn:()=>{ DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='producción')d.org=Math.min(100,d.org+5);}); G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); bumpState(7); log('🔧 Los sindicatos paran contra la reforma. La conciencia obrera crece.','event'); render(); }},
-    {label:'🤝 Negociar ajustes menores', secondary:true, fn:()=>{ G.mom=Math.max(0,G.mom-3); G.state=Math.max(0,G.state-4); log('El movimiento negocia ajustes menores y la reforma pasa en parte. El impulso decae.','state'); render(); }},
-  ]);
-}
-function decCrisisRefugiados(){
-  showDecision('Crisis de refugiados', '<p>Un conflicto en la región genera una ola de refugiados. ¿Qué hace el movimiento?</p>', [
-    {label:'🤝 Corredor humanitario popular (🍞−2)', fn:()=>{ G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+3); pagar({alimentos:2}); log('🤝 El movimiento organiza un corredor humanitario.','good'); emitQuote('internacionalismo',0.6); render(); }},
-    {label:'🏠 Priorizar a la comunidad local', secondary:true, fn:()=>{ G.consc=Math.max(0,G.consc-2); log('El movimiento prioriza lo local.','state'); render(); }},
-  ]);
-}
-function decCambioGobiernoVecino(){
-  showDecision('Cambio de gobierno en país vecino', '<p>Un gobierno popular gana en un país vecino. ¿Qué hace el movimiento?</p>', [
-    {label:'🌎 Tender puentes de cooperación', fn:()=>{ setCond('solidaridad',5); G.consc=Math.min(100,G.consc+3); log('🌎 El movimiento tiende puentes con el nuevo gobierno popular vecino. Llega solidaridad.','good'); emitQuote('internacionalismo',0.6); render(); }},
-    {label:'🏠 Mantener distancia prudente', secondary:true, fn:()=>{ log('El movimiento mantiene distancia prudente.','state'); render(); }},
-  ]);
-}
-function decDDHH(){
-  showDecision('Informe internacional de DDHH',
-    '<p>Un organismo internacional condena la represión del régimen. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'📝 Amplificar con contrainformación', fn:()=>{
-        if(G.consc>=30){ G.regime.capital=Math.max(0,G.regime.capital-7); G.consc=Math.min(100,G.consc+4); G.state=Math.max(0,G.state-5);
-          log('📝 El movimiento amplifica el informe. El régimen pierde capital político.', 'good'); emitQuote('internacionalismo',0.5); }
-        else { G.consc=Math.min(100,G.consc+2); log('Falta capacidad de comunicación para amplificar.', 'state'); }
-        render();
-      }},
-      {label:'👍 Solo registrar el apoyo', secondary:true, fn:()=>{
-        G.consc=Math.min(100,G.consc+2); log('El informe se registra.', 'state'); render();
-      }},
-    ]);
-}
-function decNegociacion(){
-  showDecision('El régimen ofrece negociar',
-    '<p>Presionado, el régimen propone una mesa de negociación. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'💪 Negociar desde la fuerza', fn:()=>{
-        const readiness = strikeReadiness();
-        if(readiness>=60){ G.state=Math.max(0,G.state-12); G.mom=Math.min(100,G.mom+4); log('💪 El movimiento negocia desde la fuerza y arranca concesiones.', 'good'); }
-        else { G.mom=Math.max(0,G.mom-4); G.consc=Math.max(0,G.consc-2); log('Negocia sin fuerza suficiente. Cuidado con la cooptación.', 'bad'); }
-        render();
-      }},
-      {label:'✊ Rechazar y movilizar', secondary:true, fn:()=>{
-        G.mom=Math.min(100,G.mom+5); bumpState(6); log('✊ El movimiento rechaza la mesa trampa y redobla la movilización.', 'event'); emitQuote('unidad',0.4); render();
-      }},
-    ]);
-}
-function decHuelgaRegional(){
-  showDecision('Huelga en la región',
-    '<p>Estalla una huelga general en un país vecino. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'🌎 Coordinar solidaridad activa (🍞−1)', fn:()=>{
-        G.consc=Math.min(100,G.consc+4); G.mom=Math.min(100,G.mom+4); G.regime.capital=Math.max(0,G.regime.capital-3); pagar({alimentos:1});
-        log('🌎 El movimiento coordina solidaridad con la huelga vecina.', 'good'); emitQuote('internacionalismo',0.7); render();
-      }},
-      {label:'🏠 Seguir enfocado en lo propio', secondary:true, fn:()=>{
-        G.mom=Math.min(100,G.mom+1); log('El movimiento sigue enfocado en lo propio.', 'state'); render();
-      }},
-    ]);
-}
-function decEscasez(){
-  showDecision('Escasez y desabastecimiento',
-    '<p>La escasez golpea los barrios. El régimen culpa "al sabotaje". ¿Qué hace el movimiento?</p>',
-    [
-      {label:'🧺 Organizar distribución comunitaria (🍞−2)', fn:()=>{
-        DISTRICTS.forEach(d=>{ if(!d.hostile&&d.type==='comunidad') d.org=Math.min(100,d.org+4); });
-        G.consc=Math.min(100,G.consc+3); pagar({alimentos:2});
-        log('🧺 El movimiento organiza redes de abastecimiento.', 'good'); emitQuote('economia',0.5); render();
-      }},
-      {label:'📢 Explicar las causas del ajuste', secondary:true, fn:()=>{
-        G.consc=Math.min(100,G.consc+4); log('El movimiento explica las causas reales de la escasez.', 'good'); emitQuote('crisis',0.5); render();
-      }},
-    ]);
-}
-function decRenuncia(){
-  showDecision('Renuncia de un ministro',
-    '<p>En medio de la crisis, un ministro del régimen renuncia públicamente. ¿Qué hace el movimiento?</p>',
-    [
-      {label:'📣 Evidenciar la fractura del régimen', fn:()=>{
-        G.regime.capital=Math.max(0,G.regime.capital-6); G.consc=Math.min(100,G.consc+3); G.mom=Math.min(100,G.mom+3);
-        log('📣 El movimiento evidencia la fractura: "el barco del régimen hace agua".', 'good'); render();
-      }},
-      {label:'🧘 No distraerse, seguir organizando', secondary:true, fn:()=>{
-        const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15); if(t.length){ const d=pick(t); d.org=Math.min(100,d.org+3); }
-        log('El movimiento no se distrae y sigue organizando.', 'state'); render();
-      }},
-    ]);
-}
+showDecision('Crisis migratoria regional','<p>La economía de un país vecino colapsa y miles de migrantes llegan. El régimen los usa como chivo expiatorio.</p>',[
+{label:'🤝 Organizar solidaridad e integración (🍞−2)', fac:{comunitaria:5,reformista:2}, fn:()=>{
+const m=DISTRICTS.find(d=>d.id==='mercado'); if(m)m.org=Math.min(100,m.org+6);
+G.consc=Math.min(100,G.consc+4);G.mom=Math.min(100,G.mom+3);pagar({alimentos:2});
+log('🤝 El movimiento organiza la acogida. "Ningún ser humano es ilegal."','good');emitQuote('internacionalismo',0.7);render();}},
+{label:'🏠 Enfocarse solo en lo local', secondary:true, fac:{comunitaria:2}, fn:()=>{
+const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15);if(t.length){const d=pick(t);d.org=Math.min(100,d.org+3);}
+log('El movimiento se concentra en lo local.','state');render();}}]);}
 
+function decDesastre(){
+showDecision('Desastre natural','<p>Una inundación golpea los barrios. El Estado brilla por su ausencia.</p>',[
+{label:'🍲 Desplegar ollas y brigadas (🍞−2, 🧱−1)', fac:{comunitaria:5,reformista:1}, fn:()=>{
+DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+5);});
+G.consc=Math.min(100,G.consc+4);G.mom=Math.min(100,G.mom+4);G.regime.capital=Math.max(0,G.regime.capital-4);
+pagar({alimentos:2,materiales:1});
+log('🍲 El movimiento destina recursos a ollas y brigadas.','good');emitQuote('fe',0.6);render();}},
+{label:'📢 Denunciar la negligencia', secondary:true, fac:{reformista:3}, fn:()=>{
+G.consc=Math.min(100,G.consc+3);G.regime.capital=Math.max(0,G.regime.capital-3);bumpState(3);
+log('El movimiento denuncia la negligencia.','state');render();}}]);}
+
+function decTerremoto(){
+showDecision('Terremoto','<p>Un terremoto sacude la región. El Estado responde lento.</p>',[
+{label:'🏗️ Brigadas de reconstrucción (🧱−2, 🔧−1)', fac:{comunitaria:5}, fn:()=>{
+DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+4);});
+G.mom=Math.min(100,G.mom+4);pagar({materiales:2,herramientas:1});
+log('🏗️ Brigadas de reconstrucción comunitaria.','good');emitQuote('fe',0.5);render();}},
+{label:'📢 Exigir respuesta estatal', secondary:true, fac:{reformista:3}, fn:()=>{
+G.consc=Math.min(100,G.consc+3);G.regime.capital=Math.max(0,G.regime.capital-3);bumpState(3);
+log('El movimiento exige respuesta estatal.','state');render();}}]);}
+
+function decEpidemia(){
+showDecision('Crisis sanitaria','<p>Una epidemia golpea y el sistema de salud colapsa.</p>',[
+{label:'🏥 Brigadas de salud (🍞−2, 💻−1) — frena la crisis', fac:{comunitaria:5,reformista:1}, fn:()=>{
+if(hasCond('epidemia')){delete G.condiciones['epidemia'];log('🏥 Las brigadas enfrentan la epidemia.','good');}
+DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+3);});
+G.consc=Math.min(100,G.consc+3);pagar({alimentos:2,tecnologia:1});emitQuote('fe',0.5);render();}},
+{label:'📢 Denunciar el abandono', secondary:true, fac:{reformista:3}, fn:()=>{
+G.consc=Math.min(100,G.consc+4);G.regime.capital=Math.max(0,G.regime.capital-3);
+log('El movimiento denuncia el abandono.','good');render();}}]);}
+
+function decPrivatizacion(){
+showDecision('Privatización de un servicio','<p>El régimen anuncia la privatización del agua/energía.</p>',[
+{label:'💧 Defender el servicio como bien común', fac:{comunitaria:3,revolucionaria:3}, fn:()=>{
+G.consc=Math.min(100,G.consc+4);DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='territorio')d.org=Math.min(100,d.org+4);});
+bumpState(5);log('💧 El movimiento defiende el servicio como bien común.','event');emitQuote('territorio',0.6);render();}},
+{label:'🧘 Organizar en silencio', secondary:true, fac:{comunitaria:2}, fn:()=>{
+const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15);if(t.length){const d=pick(t);d.org=Math.min(100,d.org+3);}
+log('El movimiento se concentra en organizar.','state');render();}}]);}
+
+function decReformaLaboral(){
+showDecision('Reforma laboral regresiva','<p>El régimen impulsa una reforma que precariza el trabajo.</p>',[
+{label:'🔧 Paro y movilización sindical', fac:{sindical:5,revolucionaria:2}, fn:()=>{
+DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='producción')d.org=Math.min(100,d.org+5);});
+G.consc=Math.min(100,G.consc+4);G.mom=Math.min(100,G.mom+4);bumpState(7);
+log('🔧 Los sindicatos paran contra la reforma.','event');render();}},
+{label:'🤝 Negociar ajustes menores', secondary:true, fac:{reformista:4}, fn:()=>{
+G.mom=Math.max(0,G.mom-3);G.state=Math.max(0,G.state-4);
+log('El movimiento negocia ajustes menores.','state');render();}}]);}
+
+function decCrisisRefugiados(){
+showDecision('Crisis de refugiados','<p>Un conflicto regional genera una ola de refugiados.</p>',[
+{label:'🤝 Corredor humanitario (🍞−2)', fac:{comunitaria:4,reformista:2}, fn:()=>{
+G.consc=Math.min(100,G.consc+4);G.mom=Math.min(100,G.mom+3);pagar({alimentos:2});
+log('🤝 El movimiento organiza un corredor humanitario.','good');emitQuote('internacionalismo',0.6);render();}},
+{label:'🏠 Priorizar lo local', secondary:true, fac:{comunitaria:2}, fn:()=>{
+G.consc=Math.max(0,G.consc-2);log('El movimiento prioriza lo local.','state');render();}}]);}
+
+function decCambioGobiernoVecino(){
+showDecision('Cambio de gobierno vecino','<p>Un gobierno popular gana en un país vecino.</p>',[
+{label:'🌎 Tender puentes de cooperación', fac:{reformista:2,revolucionaria:2}, fn:()=>{
+setCond('solidaridad',5);G.consc=Math.min(100,G.consc+3);
+log('🌎 El movimiento tiende puentes con el nuevo gobierno vecino.','good');emitQuote('internacionalismo',0.6);render();}},
+{label:'🏠 Mantener distancia prudente', secondary:true, fac:{reformista:2}, fn:()=>{
+log('El movimiento mantiene distancia prudente.','state');render();}}]);}
+
+function decDDHH(){
+showDecision('Informe internacional de DDHH','<p>Un organismo internacional condena la represión.</p>',[
+{label:'📝 Amplificar con contrainformación', fac:{reformista:3,revolucionaria:1}, fn:()=>{
+if(G.consc>=30){G.regime.capital=Math.max(0,G.regime.capital-7);G.consc=Math.min(100,G.consc+4);G.state=Math.max(0,G.state-5);
+log('📝 El movimiento amplifica el informe.','good');emitQuote('internacionalismo',0.5);}
+else{G.consc=Math.min(100,G.consc+2);log('Falta capacidad para amplificar.','state');}
+render();}},
+{label:'👍 Solo registrar el apoyo', secondary:true, fac:{reformista:2}, fn:()=>{
+G.consc=Math.min(100,G.consc+2);log('El informe se registra.','state');render();}}]);}
+
+function decNegociacion(){
+showDecision('El régimen ofrece negociar','<p>Presionado, el régimen propone una mesa de negociación.</p>',[
+{label:'💪 Negociar desde la fuerza', fac:{reformista:4,sindical:2}, fn:()=>{
+const readiness=strikeReadiness();
+if(readiness>=60){G.state=Math.max(0,G.state-12);G.mom=Math.min(100,G.mom+4);log('💪 Negocia desde la fuerza y arranca concesiones.','good');}
+else{G.mom=Math.max(0,G.mom-4);G.consc=Math.max(0,G.consc-2);log('Negocia sin fuerza suficiente.','bad');}
+render();}},
+{label:'✊ Rechazar y movilizar', secondary:true, fac:{revolucionaria:4,sindical:2}, fn:()=>{
+G.mom=Math.min(100,G.mom+5);bumpState(6);log('✊ Rechaza la mesa trampa y redobla la movilización.','event');emitQuote('unidad',0.4);render();}}]);}
+
+function decHuelgaRegional(){
+showDecision('Huelga en la región','<p>Estalla una huelga general en un país vecino.</p>',[
+{label:'🌎 Coordinar solidaridad activa (🍞−1)', fac:{sindical:4,revolucionaria:2}, fn:()=>{
+G.consc=Math.min(100,G.consc+4);G.mom=Math.min(100,G.mom+4);G.regime.capital=Math.max(0,G.regime.capital-3);pagar({alimentos:1});
+log('🌎 El movimiento coordina solidaridad con la huelga vecina.','good');emitQuote('internacionalismo',0.7);render();}},
+{label:'🏠 Seguir enfocado en lo propio', secondary:true, fac:{sindical:1}, fn:()=>{
+G.mom=Math.min(100,G.mom+1);log('El movimiento sigue enfocado en lo propio.','state');render();}}]);}
+
+function decEscasez(){
+showDecision('Escasez y desabastecimiento','<p>La escasez golpea los barrios. El régimen culpa "al sabotaje".</p>',[
+{label:'🧺 Organizar distribución comunitaria (🍞−2)', fac:{comunitaria:5}, fn:()=>{
+DISTRICTS.forEach(d=>{if(!d.hostile&&d.type==='comunidad')d.org=Math.min(100,d.org+4);});
+G.consc=Math.min(100,G.consc+3);pagar({alimentos:2});
+log('🧺 El movimiento organiza redes de abastecimiento.','good');emitQuote('economia',0.5);render();}},
+{label:'📢 Explicar las causas del ajuste', secondary:true, fac:{reformista:3}, fn:()=>{
+G.consc=Math.min(100,G.consc+4);log('El movimiento explica las causas reales.','good');emitQuote('crisis',0.5);render();}}]);}
+
+function decRenuncia(){
+showDecision('Renuncia de un ministro','<p>Un ministro del régimen renuncia públicamente.</p>',[
+{label:'📣 Evidenciar la fractura', fac:{revolucionaria:3,reformista:1}, fn:()=>{
+G.regime.capital=Math.max(0,G.regime.capital-6);G.consc=Math.min(100,G.consc+3);G.mom=Math.min(100,G.mom+3);
+log('📣 El movimiento evidencia la fractura del régimen.','good');render();}},
+{label:'🧘 No distraerse', secondary:true, fac:{comunitaria:2}, fn:()=>{
+const t=DISTRICTS.filter(d=>!d.hostile&&d.org>15);if(t.length){const d=pick(t);d.org=Math.min(100,d.org+3);}
+log('El movimiento no se distrae.','state');render();}}]);}
 const EVENTS = [
   {w:4, fn:evSolidaridad}, {w:4, fn:evIniciativa}, {w:3, fn:evMural}, {w:3, fn:evMusica},
   {w:3, fn:evFeminista}, {w:3, fn:evTerritorio}, {w:3, fn:evUniversidad}, {w:2, fn:evHuelgaHambre},
@@ -1902,7 +1928,6 @@ function attemptGeneralStrike(){
   }
   render();
 }
-
 function checkDefeat(){
   const anyBase = DISTRICTS.some(d => !d.hostile && d.org >= 10);
   if(!anyBase && G.turn > 3){
