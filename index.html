@@ -356,7 +356,11 @@ footer{text-align:center;margin-top:18px;color:var(--tenue);font-size:0.8em;font
     </div>
   </div>
 </div>
-
+<div class="panel" style="margin-bottom:14px;">
+  <h2>Fuerzas de Protesta</h2>
+  <div id="facciones"></div>
+  <div class="meta-hint">Las acciones fortalecen distintas corrientes. Las dos más fuertes definen el final.</div>
+</div>
 <!-- SECCIONES: MERCADO + RUTAS -->
 <div style="margin-top:14px;">
   <div class="panel">
@@ -460,6 +464,22 @@ footer{text-align:center;margin-top:18px;color:var(--tenue);font-size:0.8em;font
 </div>
 
 <script>
+  const FACCIONES = {
+ reformista:{nombre:'Frente Reformista', icono:'🏛', desc:'Cambio gradual dentro de las instituciones.', color:'#4a6a95'},
+ comunitaria:{nombre:'Poder Comunitario', icono:'🏘', desc:'Autonomía local, cooperativas, ayuda mutua.', color:'#8fbc7f'},
+ sindical:{nombre:'Bloque Sindical', icono:'🔧', desc:'Control obrero de la producción.', color:'#d4a017'},
+ revolucionaria:{nombre:'Corriente Revolucionaria', icono:'★', desc:'Ruptura estructural y nuevo poder popular.', color:'#c1272d'}
+};
+const FACCION_POR_ACCION = {
+ organize:['reformista','comunitaria'], education:['reformista'], leaflet:['reformista'],
+ mutualaid:['comunitaria'], project:['comunitaria'], minga:['comunitaria'],
+ strikew:['sindical'], unity:['reformista','comunitaria','sindical'], comunal:['comunitaria'],
+ countermedia:['reformista'], council:['sindical','revolucionaria'], freepress:['reformista','sindical'],
+ cooperative:['sindical','comunitaria'], commedia:['reformista','comunitaria'],
+ front:['reformista','comunitaria','sindical','revolucionaria'], genstrike:['revolucionaria','sindical']
+};
+function boostFacciones(id){const m=FACCION_POR_ACCION[id];if(!m)return;m.forEach(f=>{G.facciones[f]=Math.min(100,G.facciones[f]+3);});}
+function topFacciones(){return Object.keys(G.facciones).map(k=>({k,v:G.facciones[k]})).sort((a,b)=>b.v-a.v);}
 // ===== DIFICULTAD =====
 const DIFFICULTIES = {
   suave:  { label:'Suave',   regimeCapital:70,  alertStart:15, resMult:1.4, attrition:0.3, repMod:0.7, conscDecay:0.35 },
@@ -799,7 +819,7 @@ const ACTIONS = [
 let G, DISTRICTS, eliminationQueue = [];
 
 function initGame() {
-  G = { turn:1, sp:5, consc:15, mom:10, state:DIFF.alertStart, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[],
+  G = { facciones:{reformista:10,comunitaria:10,sindical:10,revolucionaria:10},turn:1, sp:5, consc:15, mom:10, state:DIFF.alertStart, over:false, leaders:[], candidates:[], martyrs:[], nextId:1, playerMovesThisTurn:[],
         rec:{alimentos:Math.round(6*DIFF.resMult), herramientas:Math.round(4*DIFF.resMult), materiales:Math.round(4*DIFF.resMult), tecnologia:Math.round(2*DIFF.resMult)},
         medioComunitario:false, frentePopular:false, condiciones:{}, diario:[], historia:[], nivelMercado:1, canalTV:4, tvMsg:null, tvEfecto:null, ultimoEventoNombre:null };
   G.regime = { capital:DIFF.regimeCapital, fase:1, bots:0, internet:0, militarizado:0, collapsed:false, lastMeasure:'Observa', lastDetail:'El régimen aún subestima al movimiento.', lastMinister:'🏛️ El Régimen' };
@@ -1448,7 +1468,12 @@ function evMigracionCampo(){ const m=DISTRICTS.find(d=>d.id==='mercado'); if(m){
 function evMemoria(){ G.consc=Math.min(100,G.consc+2); G.mom=Math.min(100,G.mom+2); registrarDiario('evento','Memoria histórica.'); log('🕯️ Un aniversario de una lucha histórica moviliza la memoria colectiva.', 'good'); emitQuote('martir',0.3); }
 function evBloqueoRuta(){ if(!bloquearRuta()) evTranquila(); }
 function evTranquila(){ log('🌤️ Jornada tranquila. El movimiento consolida lo construido.', 'state'); }
-
+function renderFacciones(){
+  const el=document.getElementById('facciones');if(!el)return;let h='';
+  Object.keys(FACCIONES).forEach(k=>{const f=FACCIONES[k];const v=G.facciones[k];
+    h+='<div class="meter"><label>'+f.icono+' '+f.nombre+' <span>'+v+'</span></label><div class="bar"><div style="width:'+v+'%;background:'+f.color+'"></div></div></div>';});
+  el.innerHTML=h;
+}
 // ===== EVENTOS DE DECISIÓN =====
 function decCrisisMigratoria(){
   showDecision('Crisis migratoria regional',
@@ -1658,7 +1683,36 @@ function render(){
   } else {
     s2.classList.add('hidden');
   }
-
+  function finalPorFacciones(){
+  const top=topFacciones();const f1=top[0].k,f2=top[1].k;
+  let titulo='',texto='';
+  if(f1==='reformista'){
+    titulo='LA TRANSICIÓN PACTADA';
+    texto='<p>El régimen negocia su salida. Se convocan elecciones libres y se restauran las instituciones democráticas. El cambio llega por la vía electoral y la presión popular sostenida.</p><p>Los viejos poderes conservan algo de influencia, pero el sistema queda reformado: nuevos derechos, nuevas garantías. Una victoria moderada, construida sobre unidad y paciencia.</p>';
+    if(f2==='comunitaria')texto+='<p>El nuevo gobierno descentraliza recursos hacia las comunidades, que florecen con autonomía.</p>';
+    else if(f2==='sindical')texto+='<p>Los sindicatos conquistan derechos laborales históricos y voz en las decisiones económicas.</p>';
+    else if(f2==='revolucionaria')texto+='<p>La corriente radical queda como oposición vigilante, recordando que la democracia debe profundizarse.</p>';
+  }else if(f1==='comunitaria'){
+    titulo='LA RED DE COMUNAS';
+    texto='<p>El poder se descentraliza en una red de comunas, cooperativas y asambleas vecinales autogobernadas. El Estado se repliega a coordinar.</p><p>La vida se organiza desde abajo: ollas, huertas, talleres y escuelas comunitarias tejen una nueva cotidianidad basada en la ayuda mutua.</p>';
+    if(f2==='reformista')texto+='<p>Las instituciones acompañan la transición garantizando derechos y libertades.</p>';
+    else if(f2==='sindical')texto+='<p>Las fábricas pasan a manos de quienes las trabajan, coordinadas con las comunas.</p>';
+    else if(f2==='revolucionaria')texto+='<p>La autonomía comunal se extiende hasta reemplazar las viejas estructuras de mando.</p>';
+  }else if(f1==='sindical'){
+    titulo='LA REPÚBLICA DE LOS TRABAJADORES';
+    texto='<p>Los sindicatos y cooperativas toman el control de la producción. La economía pasa a ser dirigida democráticamente por quienes la hacen funcionar.</p><p>Fábricas, puerto y mina operan bajo gestión obrera, y la riqueza se reparte según el trabajo y la necesidad.</p>';
+    if(f2==='reformista')texto+='<p>La nueva república mantiene garantías democráticas y pluralismo.</p>';
+    else if(f2==='comunitaria')texto+='<p>La gestión obrera se articula con las comunas, uniendo campo y ciudad.</p>';
+    else if(f2==='revolucionaria')texto+='<p>El control obrero se profundiza hasta transformar la propiedad y el poder.</p>';
+  }else{
+    titulo='EL NUEVO PODER POPULAR';
+    texto='<p>El viejo Estado es desmantelado y reemplazado por asambleas populares y consejos de trabajadores. Una reestructuración completa del poder.</p><p>Nace un orden nuevo construido desde las bases: la transformación más profunda y también la más desafiante. Todo está por construirse.</p>';
+    if(f2==='sindical')texto+='<p>Los consejos obreros son la columna del nuevo poder.</p>';
+    else if(f2==='comunitaria')texto+='<p>Las comunas son el tejido del nuevo orden.</p>';
+    else if(f2==='reformista')texto+='<p>Sectores reformistas pugnan por encauzar la transformación por vías institucionales.</p>';
+  }
+  return {titulo,texto};
+}
   const grid = document.getElementById('districts'); grid.innerHTML='';
   DISTRICTS.forEach(d=>{
     const el = document.createElement('div');
@@ -1775,6 +1829,7 @@ function doAction(action){
   pagar(action.costoRecursos);
   if(action.id==='genstrike') return;
   G.playerMovesThisTurn.push(action.id);
+  boostFacciones(action.id);
   registrarDiario('acción', `${action.name} en ${d.name}.`);
   const leader = G.leaders.find(L=>L.status==='desplegado' && L.district===d.id);
   if(leader && !d.hostile && ['organize','education','mutualaid','strikew','council','cooperative'].includes(action.id)){
@@ -1825,19 +1880,19 @@ function attemptGeneralStrike(){
   const councils = DISTRICTS.filter(d=>d.council).length;
   registrarDiario('paro', `Convocó el Paro General con ${Math.round(readiness)}% de preparación.`);
   log(`⚑ SE CONVOCA AL PARO GENERAL. Preparación: ${Math.round(readiness)}%, Asambleas: ${councils}, Conciencia: ${Math.round(G.consc)}.`, 'event');
-  if(readiness>=90 && councils>=3 && G.consc>=60){
-    G.over = true;
-    snapshotSiNuevo();
-    document.getElementById('end-title').textContent = '🚩 VICTORIA — EL PAÍS SE DETIENE';
-    document.getElementById('end-text').innerHTML = `
-      <p>Al amanecer, nada se mueve. La mina está parada, el puerto vacío, no hay buses ni mercado. La minga descansa en asamblea.</p>
-      <p>No se disparó un solo tiro. La clase dominante descubre lo que siempre supieron los organizadores: <strong>su poder era prestado — prestado, cada día, del trabajo y la obediencia de millones.</strong></p>
-      <p>Las cooperativas producen, el medio comunitario informa, las asambleas y el Frente Popular coordinan la vida. La producción y la palabra vuelven a manos del pueblo, por vía democrática.</p>
-      ${G.martyrs.length ? `<p>Los mártires son nombrados uno a uno: <b>${G.martyrs.join(', ')}</b>. No murieron: se sembraron.</p>` : ''}
-      <blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>
-      <p><b>Completado en ${G.turn} jornadas · Dificultad: ${DIFF.label}.</b></p>`;
-    renderGraficaRecursos('grafica-final');
-    document.getElementById('endscreen').classList.remove('hidden');
+  if(rd>=90&&c>=3&&G.consc>=60){
+  G.over=true;snapshotSiNuevo();
+  const fin=finalPorFacciones();
+  const top=topFacciones();
+  document.getElementById('end-title').textContent='VICTORIA — '+fin.titulo;
+  document.getElementById('end-text').innerHTML=fin.texto+
+   '<p><b>Facciones dominantes:</b> '+FACCIONES[top[0].k].nombre+' y '+FACCIONES[top[1].k].nombre+'.</p>'+
+   (G.martyrs.length?'<p>Los mártires son nombrados: <b>'+G.martyrs.join(', ')+'</b>. No murieron: se sembraron.</p>':'')+
+   '<blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>'+
+   '<p><b>Completado en '+G.turn+' jornadas · '+DIFF.label+'.</b></p>';
+  renderGraficaRecursos('grafica-final');
+  document.getElementById('endscreen').classList.remove('hidden');
+}
   } else {
     let faltan=[];
     if(readiness<90) faltan.push(`Preparación ${Math.round(readiness)}% (falta 90%)`);
