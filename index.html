@@ -1635,7 +1635,36 @@ function eventPhase(){
   let r = Math.random()*total;
   for(const e of EVENTS){ if(r < e.w){ G.ultimoEventoNombre = e.fn.name; e.fn(); return; } r -= e.w; }
 }
-
+function finalPorFacciones(){
+  const top=topFacciones(); const f1=top[0].k, f2=top[1].k;
+  let titulo='', texto='';
+  if(f1==='reformista'){
+    titulo='LA TRANSICIÓN PACTADA';
+    texto='<p>El régimen negocia su salida. Se convocan elecciones libres y se restauran las instituciones democráticas. El cambio llega por la vía electoral y la presión popular sostenida.</p><p>Los viejos poderes conservan algo de influencia, pero el sistema queda reformado: nuevos derechos, nuevas garantías. Una victoria moderada, construida sobre unidad y paciencia.</p>';
+    if(f2==='comunitaria')texto+='<p>El nuevo gobierno descentraliza recursos hacia las comunidades, que florecen con autonomía.</p>';
+    else if(f2==='sindical')texto+='<p>Los sindicatos conquistan derechos laborales históricos y voz en las decisiones económicas.</p>';
+    else if(f2==='revolucionaria')texto+='<p>La corriente radical queda como oposición vigilante, recordando que la democracia debe profundizarse.</p>';
+  }else if(f1==='comunitaria'){
+    titulo='LA RED DE COMUNAS';
+    texto='<p>El poder se descentraliza en una red de comunas, cooperativas y asambleas vecinales autogobernadas. El Estado se repliega a coordinar.</p><p>La vida se organiza desde abajo: ollas, huertas, talleres y escuelas comunitarias tejen una nueva cotidianidad basada en la ayuda mutua.</p>';
+    if(f2==='reformista')texto+='<p>Las instituciones acompañan la transición garantizando derechos y libertades.</p>';
+    else if(f2==='sindical')texto+='<p>Las fábricas pasan a manos de quienes las trabajan, coordinadas con las comunas.</p>';
+    else if(f2==='revolucionaria')texto+='<p>La autonomía comunal se extiende hasta reemplazar las viejas estructuras de mando.</p>';
+  }else if(f1==='sindical'){
+    titulo='LA REPÚBLICA DE LOS TRABAJADORES';
+    texto='<p>Los sindicatos y cooperativas toman el control de la producción. La economía pasa a ser dirigida democráticamente por quienes la hacen funcionar.</p><p>Fábricas, puerto y mina operan bajo gestión obrera, y la riqueza se reparte según el trabajo y la necesidad.</p>';
+    if(f2==='reformista')texto+='<p>La nueva república mantiene garantías democráticas y pluralismo.</p>';
+    else if(f2==='comunitaria')texto+='<p>La gestión obrera se articula con las comunas, uniendo campo y ciudad.</p>';
+    else if(f2==='revolucionaria')texto+='<p>El control obrero se profundiza hasta transformar la propiedad y el poder.</p>';
+  }else{
+    titulo='EL NUEVO PODER POPULAR';
+    texto='<p>El viejo Estado es desmantelado y reemplazado por asambleas populares y consejos de trabajadores. Una reestructuración completa del poder.</p><p>Nace un orden nuevo construido desde las bases: la transformación más profunda y también la más desafiante. Todo está por construirse.</p>';
+    if(f2==='sindical')texto+='<p>Los consejos obreros son la columna del nuevo poder.</p>';
+    else if(f2==='comunitaria')texto+='<p>Las comunas son el tejido del nuevo orden.</p>';
+    else if(f2==='reformista')texto+='<p>Sectores reformistas pugnan por encauzar la transformación por vías institucionales.</p>';
+  }
+  return {titulo,texto};
+}
 // ===== RENDER =====
 function render(){
   document.getElementById('turn').textContent = G.turn;
@@ -1683,36 +1712,7 @@ function render(){
   } else {
     s2.classList.add('hidden');
   }
-  function finalPorFacciones(){
-  const top=topFacciones();const f1=top[0].k,f2=top[1].k;
-  let titulo='',texto='';
-  if(f1==='reformista'){
-    titulo='LA TRANSICIÓN PACTADA';
-    texto='<p>El régimen negocia su salida. Se convocan elecciones libres y se restauran las instituciones democráticas. El cambio llega por la vía electoral y la presión popular sostenida.</p><p>Los viejos poderes conservan algo de influencia, pero el sistema queda reformado: nuevos derechos, nuevas garantías. Una victoria moderada, construida sobre unidad y paciencia.</p>';
-    if(f2==='comunitaria')texto+='<p>El nuevo gobierno descentraliza recursos hacia las comunidades, que florecen con autonomía.</p>';
-    else if(f2==='sindical')texto+='<p>Los sindicatos conquistan derechos laborales históricos y voz en las decisiones económicas.</p>';
-    else if(f2==='revolucionaria')texto+='<p>La corriente radical queda como oposición vigilante, recordando que la democracia debe profundizarse.</p>';
-  }else if(f1==='comunitaria'){
-    titulo='LA RED DE COMUNAS';
-    texto='<p>El poder se descentraliza en una red de comunas, cooperativas y asambleas vecinales autogobernadas. El Estado se repliega a coordinar.</p><p>La vida se organiza desde abajo: ollas, huertas, talleres y escuelas comunitarias tejen una nueva cotidianidad basada en la ayuda mutua.</p>';
-    if(f2==='reformista')texto+='<p>Las instituciones acompañan la transición garantizando derechos y libertades.</p>';
-    else if(f2==='sindical')texto+='<p>Las fábricas pasan a manos de quienes las trabajan, coordinadas con las comunas.</p>';
-    else if(f2==='revolucionaria')texto+='<p>La autonomía comunal se extiende hasta reemplazar las viejas estructuras de mando.</p>';
-  }else if(f1==='sindical'){
-    titulo='LA REPÚBLICA DE LOS TRABAJADORES';
-    texto='<p>Los sindicatos y cooperativas toman el control de la producción. La economía pasa a ser dirigida democráticamente por quienes la hacen funcionar.</p><p>Fábricas, puerto y mina operan bajo gestión obrera, y la riqueza se reparte según el trabajo y la necesidad.</p>';
-    if(f2==='reformista')texto+='<p>La nueva república mantiene garantías democráticas y pluralismo.</p>';
-    else if(f2==='comunitaria')texto+='<p>La gestión obrera se articula con las comunas, uniendo campo y ciudad.</p>';
-    else if(f2==='revolucionaria')texto+='<p>El control obrero se profundiza hasta transformar la propiedad y el poder.</p>';
-  }else{
-    titulo='EL NUEVO PODER POPULAR';
-    texto='<p>El viejo Estado es desmantelado y reemplazado por asambleas populares y consejos de trabajadores. Una reestructuración completa del poder.</p><p>Nace un orden nuevo construido desde las bases: la transformación más profunda y también la más desafiante. Todo está por construirse.</p>';
-    if(f2==='sindical')texto+='<p>Los consejos obreros son la columna del nuevo poder.</p>';
-    else if(f2==='comunitaria')texto+='<p>Las comunas son el tejido del nuevo orden.</p>';
-    else if(f2==='reformista')texto+='<p>Sectores reformistas pugnan por encauzar la transformación por vías institucionales.</p>';
-  }
-  return {titulo,texto};
-}
+  
   const grid = document.getElementById('districts'); grid.innerHTML='';
   DISTRICTS.forEach(d=>{
     const el = document.createElement('div');
@@ -1880,19 +1880,18 @@ function attemptGeneralStrike(){
   const councils = DISTRICTS.filter(d=>d.council).length;
   registrarDiario('paro', `Convocó el Paro General con ${Math.round(readiness)}% de preparación.`);
   log(`⚑ SE CONVOCA AL PARO GENERAL. Preparación: ${Math.round(readiness)}%, Asambleas: ${councils}, Conciencia: ${Math.round(G.consc)}.`, 'event');
-  if(rd>=90&&c>=3&&G.consc>=60){
-  G.over=true;snapshotSiNuevo();
-  const fin=finalPorFacciones();
-  const top=topFacciones();
-  document.getElementById('end-title').textContent='VICTORIA — '+fin.titulo;
-  document.getElementById('end-text').innerHTML=fin.texto+
-   '<p><b>Facciones dominantes:</b> '+FACCIONES[top[0].k].nombre+' y '+FACCIONES[top[1].k].nombre+'.</p>'+
-   (G.martyrs.length?'<p>Los mártires son nombrados: <b>'+G.martyrs.join(', ')+'</b>. No murieron: se sembraron.</p>':'')+
-   '<blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>'+
-   '<p><b>Completado en '+G.turn+' jornadas · '+DIFF.label+'.</b></p>';
-  renderGraficaRecursos('grafica-final');
-  document.getElementById('endscreen').classList.remove('hidden');
-}
+  if(readiness>=90 && councils>=3 && G.consc>=60){
+    G.over=true; snapshotSiNuevo();
+    const fin = finalPorFacciones();
+    const top = topFacciones();
+    document.getElementById('end-title').textContent='VICTORIA — '+fin.titulo;
+    document.getElementById('end-text').innerHTML = fin.texto+
+      '<p><b>Facciones dominantes:</b> '+FACCIONES[top[0].k].nombre+' y '+FACCIONES[top[1].k].nombre+'.</p>'+
+      (G.martyrs.length?'<p>Los mártires son nombrados: <b>'+G.martyrs.join(', ')+'</b>. No murieron: se sembraron.</p>':'')+
+      '<blockquote>"La historia es nuestra y la hacen los pueblos." — Salvador Allende</blockquote>'+
+      '<p><b>Completado en '+G.turn+' jornadas · '+DIFF.label+'.</b></p>';
+    renderGraficaRecursos('grafica-final');
+    document.getElementById('endscreen').classList.remove('hidden');
   } else {
     let faltan=[];
     if(readiness<90) faltan.push(`Preparación ${Math.round(readiness)}% (falta 90%)`);
