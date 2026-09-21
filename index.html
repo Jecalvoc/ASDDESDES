@@ -209,6 +209,12 @@ footer{text-align:center;margin-top:18px;color:var(--tenue);font-size:0.8em;font
 .term-val{font-size:0.8em;color:var(--oro-claro);text-align:right;}
 .term-final{margin-top:10px;font-size:0.85em;color:var(--oro);border-top:1px solid var(--rojo-osc);padding-top:8px;}
 .term-final b{color:var(--oro-claro);}
+.term-row{display:grid;grid-template-columns:1fr 110px 50px;align-items:center;gap:8px;margin-bottom:6px;}
+.term-row.lider{background:rgba(212,160,23,0.10);border:1px solid var(--oro);border-radius:4px;padding:3px 5px;}
+.term-label{font-size:0.78em;color:var(--crema);white-space:nowrap;overflow:hidden;}
+.term-val{font-size:0.8em;color:var(--oro-claro);text-align:right;}
+.term-final{margin-top:10px;font-size:0.85em;color:var(--oro);border-top:1px solid var(--rojo-osc);padding-top:8px;}
+.term-final b{color:var(--oro-claro);}
 </style>
 </head>
 <body>
@@ -491,7 +497,7 @@ const FACCION_POR_ACCION = {
 };
 function boostFacciones(id){const m=FACCION_POR_ACCION[id];if(!m)return;m.forEach(f=>{G.facciones[f]=Math.min(100,G.facciones[f]+3);});}
 
-function boostFaccionesObj(obj){
+function boostFaccionesRegime(obj){
   Object.keys(obj).forEach(k=>{
     if(G.facciones[k]!==undefined){
       G.facciones[k]=Math.max(0,Math.min(100,G.facciones[k]+obj[k]));
@@ -1343,23 +1349,26 @@ function applyRepression(d, orgLoss, label, minKey){
   d.org = Math.max(0, d.org - Math.round(orgLoss * DIFF.repMod));
   if(G.consc >= 42){
     G.consc=Math.min(100,G.consc+5); G.mom=Math.min(100,G.mom+5); G.regime.capital=Math.max(0,G.regime.capital-10);
+    boostFaccionesRegime({revolucionaria:3, sindical:1});   // ← boomerang radicaliza
     regimeAction(minKey||'interior', label, `La represión se vuelve boomerang: la primera línea protege, los cacerolazos responden, el mundo mira.`, 'event');
     emitQuote('represion', 0.5);
   } else {
     G.mom=Math.max(0,G.mom-6);
+    boostFaccionesRegime({reformista:3});                   // ← el miedo empuja a la vía moderada
     regimeAction(minKey||'interior', label, `El miedo se instala; el régimen gana margen.`, 'bad');
   }
 }
 function repressionBackfireOnly(label, minKey){
   if(G.consc >= 42){
     G.consc=Math.min(100,G.consc+6); G.mom=Math.min(100,G.mom+6); G.regime.capital=Math.max(0,G.regime.capital-12); G.state=Math.max(0,G.state-5);
+    boostFaccionesRegime({revolucionaria:4, comunitaria:2}); // ← medidas extremas radicalizan y fortalecen comunidad
     regimeAction(minKey, label, `<b>BACKFIRE</b>: la medida indigna, el régimen pierde capital político.`, 'event');
     emitQuote('represion', 0.5);
   } else {
+    boostFaccionesRegime({reformista:3});                   // ← miedo → moderación
     regimeAction(minKey, label, `El miedo se impone; pocos se atreven a desafiar la medida.`, 'bad');
   }
 }
-
 function regimePhase(){
   G.regime.fase = getFase();
   const moves = G.playerMovesThisTurn || [];
@@ -1382,6 +1391,7 @@ function regimePhase(){
 }
 function regimeBotCounter(){
   G.consc=Math.max(0,G.consc-4); G.regime.bots=2;
+  boostFaccionesRegime({reformista:2, revolucionaria:1}); // ← manipulación empuja a reformistas y revolucionarios
   regimeAction('vocero','Guerra digital','El régimen activa su ejército de bots para ahogar la contrainformación.','bad');
   emitQuote('medios', 0.5);
 }
@@ -1395,46 +1405,50 @@ function regimeFaseByAlert(){ const f=getFase(); if(f<=2)regimeFase2(); else if(
 function regimeFase1(){
   const opts = [
     ()=>{ G.consc=Math.max(0,G.consc-2); regimeAction('vocero','Silencio mediático','Los medios ignoran la protesta. "Aquí no está pasando nada."', 'bad'); },
-    ()=>{ G.consc=Math.max(0,G.consc-2); G.regime.bots=Math.max(G.regime.bots,1); regimeAction('vocero','Bots de minimización','Cuentas automatizadas instalan: "son cuatro gatos".', 'bad'); },
-    ()=>{ G.consc=Math.max(0,G.consc-2); bumpState(2); regimeAction('vocero','Enemigo externo','El gobierno señala un "enemigo foráneo" que financia las protestas.', 'bad'); },
+    ()=>{ G.consc=Math.max(0,G.consc-2); G.regime.bots=Math.max(G.regime.bots,1); boostFaccionesRegime({reformista:1}); regimeAction('vocero','Bots de minimización','Cuentas automatizadas instalan: "son cuatro gatos".', 'bad'); },
+    ()=>{ G.consc=Math.max(0,G.consc-2); bumpState(2); boostFaccionesRegime({revolucionaria:1}); regimeAction('vocero','Enemigo externo','El gobierno señala un "enemigo foráneo" que financia las protestas.', 'bad'); },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
+
 function regimeFase2(){
   const opts = [
-    ()=>{ G.consc=Math.max(0,G.consc-4); G.regime.bots=2; regimeAction('vocero','Granja de bots','Tendencias falsas y desinformación inundan las redes.', 'bad'); emitQuote('medios',0.4); },
-    ()=>{ G.consc=Math.max(0,G.consc-3); G.mom=Math.max(0,G.mom-4); regimeAction('vocero','Criminalización mediática','Medios privados contra "vándalos y terroristas".', 'bad'); emitQuote('medios',0.4); },
+    ()=>{ G.consc=Math.max(0,G.consc-4); G.regime.bots=2; boostFaccionesRegime({reformista:1, revolucionaria:1}); regimeAction('vocero','Granja de bots','Tendencias falsas y desinformación inundan las redes.', 'bad'); emitQuote('medios',0.4); },
+    ()=>{ G.consc=Math.max(0,G.consc-3); G.mom=Math.max(0,G.mom-4); boostFaccionesRegime({reformista:2}); regimeAction('vocero','Criminalización mediática','Medios privados contra "vándalos y terroristas".', 'bad'); emitQuote('medios',0.4); },
     ()=>{ G.consc=Math.max(0,G.consc-3); regimeAction('vocero','Cadena nacional','El gobierno usa los medios públicos para hablar de "normalidad".', 'bad'); },
-    ()=>{ G.mom=Math.max(0,G.mom-4); regimeAction('vocero','Campaña del miedo','"Con ellos viene el caos y el desabastecimiento."', 'bad'); },
+    ()=>{ G.mom=Math.max(0,G.mom-4); boostFaccionesRegime({comunitaria:2}); regimeAction('vocero','Campaña del miedo','"Con ellos viene el caos y el desabastecimiento."', 'bad'); },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
+
 function regimeFase3(){
   const opts = [
-    ()=>{ G.mom=Math.max(0,G.mom-6); G.consc=Math.max(0,G.consc-3); G.state=Math.max(0,G.state-8); G.regime.capital=Math.max(0,G.regime.capital-3); regimeAction('economia','Paquete de bonos','El gobierno reparte bonos para comprar la calma.', 'state'); },
-    ()=>{ G.mom=Math.max(0,G.mom-5); regimeAction('interior','Mesa de diálogo','Convoca una "mesa de diálogo" mientras gana tiempo.', 'state'); },
-    ()=>{ const L=activeLeader(); if(L){ L.status='cooptado'; L.district=null; regimeAction('economia','Cooptación',`Ofrecieron cargos a ${L.name}, que se apartó del movimiento.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); regimeAction('economia','Cooptación','El régimen ofrece puestos para comprar dirigentes.', 'state'); } },
-    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-10); regimeAction('economia','Dividir',`Ofrece un acuerdo sectorial: ${d.name} duda.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); regimeAction('economia','Dividir','El régimen intenta fracturar la unidad.', 'state'); } },
+    ()=>{ G.mom=Math.max(0,G.mom-6); G.consc=Math.max(0,G.consc-3); G.state=Math.max(0,G.state-8); G.regime.capital=Math.max(0,G.regime.capital-3); boostFaccionesRegime({reformista:3}); regimeAction('economia','Paquete de bonos','El gobierno reparte bonos para comprar la calma.', 'state'); },
+    ()=>{ G.mom=Math.max(0,G.mom-5); boostFaccionesRegime({reformista:2}); regimeAction('interior','Mesa de diálogo','Convoca una "mesa de diálogo" mientras gana tiempo.', 'state'); },
+    ()=>{ const L=activeLeader(); if(L){ L.status='cooptado'; L.district=null; boostFaccionesRegime({reformista:2}); regimeAction('economia','Cooptación',`Ofrecieron cargos a ${L.name}, que se apartó del movimiento.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); boostFaccionesRegime({reformista:2}); regimeAction('economia','Cooptación','El régimen ofrece puestos para comprar dirigentes.', 'state'); } },
+    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-10); boostFaccionesRegime({sindical:-1, revolucionaria:1}); regimeAction('economia','Dividir',`Ofrece un acuerdo sectorial: ${d.name} duda.`, 'bad'); } else { G.mom=Math.max(0,G.mom-3); regimeAction('economia','Dividir','El régimen intenta fracturar la unidad.', 'state'); } },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
+
 function regimeFase4(){
   const opts = [
-    ()=>{ const d=strongestDistrict(); if(d) applyRepression(d, 18, `Despliega el ESMAD contra ${d.name}.`, 'interior'); },
-    ()=>{ const L=deployedLeader()||activeLeader(); if(L){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2); regimeAction('interior','Judicialización (lawfare)',`Capturaron a ${L.name} por "sedición". Preso/a político/a.`, 'bad'); } else { const d=strongestDistrict(); if(d) applyRepression(d, 14, `Operativo represivo contra ${d.name}.`, 'interior'); } },
-    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-8); regimeAction('inteligencia','Infiltración',`Infiltrados siembran desconfianza en ${d.name}.`, 'bad'); } },
-    ()=>{ G.consc=Math.max(0,G.consc-3); regimeAction('inteligencia','Estigmatización','Montajes y datos filtrados contra los líderes.', 'bad'); },
-    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d) applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } },
+    ()=>{ const d=strongestDistrict(); if(d){ applyRepression(d, 18, `Despliega el ESMAD contra ${d.name}.`, 'interior'); }},
+    ()=>{ const L=deployedLeader()||activeLeader(); if(L){ L.status='preso'; L.district=null; G.consc=Math.min(100,G.consc+2); boostFaccionesRegime({revolucionaria:2, sindical:1}); regimeAction('interior','Judicialización (lawfare)',`Capturaron a ${L.name} por "sedición". Preso/a político/a.`, 'bad'); } else { const d=strongestDistrict(); if(d){ applyRepression(d, 14, `Operativo represivo contra ${d.name}.`, 'interior'); } } },
+    ()=>{ const d=randomOrganized(); if(d){ d.org=Math.max(0,d.org-8); boostFaccionesRegime({comunitaria:1, revolucionaria:1}); regimeAction('inteligencia','Infiltración',`Infiltrados siembran desconfianza en ${d.name}.`, 'bad'); } },
+    ()=>{ G.consc=Math.max(0,G.consc-3); boostFaccionesRegime({reformista:1}); regimeAction('inteligencia','Estigmatización','Montajes y datos filtrados contra los líderes.', 'bad'); },
+    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d){ applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } } },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
+
 function regimeFase5(){
   const opts = [
     ()=>{ G.mom=Math.max(0,G.mom-6); repressionBackfireOnly('Decreta toque de queda.', 'interior'); },
     ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile && d.org>10) d.org=Math.max(0,d.org-6); }); G.regime.militarizado=2; repressionBackfireOnly('Militariza la ciudad: tanques en las calles.', 'interior'); },
-    ()=>{ G.regime.internet=2; G.consc=Math.max(0,G.consc-4); repressionBackfireOnly('Corta el internet durante las protestas.', 'inteligencia'); },
+    ()=>{ G.regime.internet=2; G.consc=Math.max(0,G.consc-4); boostFaccionesRegime({revolucionaria:2, comunitaria:1}); repressionBackfireOnly('Corta el internet durante las protestas.', 'inteligencia'); },
     ()=>{ DISTRICTS.forEach(d=>{ if(!d.hostile) d.org=Math.max(0,d.org-8); }); G.mom=Math.max(0,G.mom-5); repressionBackfireOnly('Decreta estado de sitio.', 'interior'); },
-    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d) applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } },
+    ()=>{ if(!bloquearRuta()){ const d=strongestDistrict(); if(d){ applyRepression(d, 12, `Operativo contra ${d.name}.`, 'interior'); } } },
   ];
   opts[Math.floor(Math.random()*opts.length)]();
 }
@@ -1503,7 +1517,9 @@ function renderFacciones(){
 function renderTermometro(){
   const el=document.getElementById('termometro');if(!el)return;
   const top=topFacciones();
-  let h='';
+  const probs=probabilidadesFinales();
+
+  let h='<div style="font-size:0.78em;color:var(--oro);margin-bottom:8px;">Facciones (ordenadas por fuerza)</div>';
   top.forEach((f,i)=>{
     const def=FACCIONES[f.k];
     const lider=i<2;
@@ -1514,10 +1530,57 @@ function renderTermometro(){
     h+='<div class="term-val">'+f.v+'</div>';
     h+='</div>';
   });
+
+  h+='<div style="font-size:0.78em;color:var(--oro);margin-top:12px;margin-bottom:8px;">Probabilidad de cada final</div>';
+  // ordena probabilidades de mayor a menor
+  const probsArr = Object.keys(probs).map(k=>({k,v:probs[k]})).sort((a,b)=>b.v-a.v);
+  probsArr.forEach((p,i)=>{
+    const info=FINALES_INFO[p.k];
+    const lider=i===0;
+    h+='<div class="term-row'+(lider?' lider':'')+'">';
+    h+='<div class="term-label">'+info.icono+' '+info.nombre+'</div>';
+    h+='<div class="bar"><div style="width:'+p.v+'%;background:'+info.color+'"></div></div>';
+    h+='<div class="term-val">'+p.v+'%</div>';
+    h+='</div>';
+  });
+
   const fin=finalPorFacciones();
   h+='<div class="term-final">Final previsto: <b>'+fin.titulo+'</b></div>';
   el.innerHTML=h;
 }
+function probabilidadesFinales(){
+  // Mapea cada facción al final que dominaría si gana
+  const pesos = {
+    reformista:    {transicion:1.0, comunas:0.0, republica:0.0, nuevo:0.0},
+    comunitaria:   {transicion:0.0, comunas:1.0, republica:0.0, nuevo:0.0},
+    sindical:      {transicion:0.0, comunas:0.0, republica:1.0, nuevo:0.0},
+    revolucionaria:{transicion:0.0, comunas:0.0, republica:0.0, nuevo:1.0}
+  };
+  const acc = {transicion:0, comunas:0, republica:0, nuevo:0};
+  let total = 0;
+  Object.keys(pesos).forEach(f=>{
+    const v = G.facciones[f] || 0;
+    // peso cuadrático: facciones fuertes pesan más
+    const w = v * v;
+    Object.keys(pesos[f]).forEach(fin=>{ acc[fin] += pesos[f][fin] * w; });
+    total += w;
+  });
+  if(total === 0) return {transicion:25, comunas:25, republica:25, nuevo:25};
+  const p = {};
+  Object.keys(acc).forEach(k=>{ p[k] = Math.round((acc[k]/total)*100); });
+  // corrección de redondeo para sumar 100
+  const suma = Object.values(p).reduce((s,x)=>s+x,0);
+  const top = Object.keys(p).reduce((a,b)=>p[a]>=p[b]?a:b);
+  p[top] += (100 - suma);
+  return p;
+}
+
+const FINALES_INFO = {
+  transicion:{nombre:'Transición pactada', icono:'🏛', color:'#4a6a95'},
+  comunas:   {nombre:'Red de comunas',    icono:'🏘', color:'#8fbc7f'},
+  republica: {nombre:'República obrera',  icono:'🔧', color:'#d4a017'},
+  nuevo:     {nombre:'Nuevo poder popular', icono:'★', color:'#c1272d'}
+};
 // ===== EVENTOS DE DECISIÓN =====
 function decCrisisMigratoria(){
 showDecision('Crisis migratoria regional','<p>La economía de un país vecino colapsa y miles de migrantes llegan. El régimen los usa como chivo expiatorio.</p>',[
